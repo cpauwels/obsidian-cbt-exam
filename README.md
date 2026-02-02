@@ -37,7 +37,7 @@ _Coming soon to the Obsidian Community Plugins list!_
 
 ### Manual Installation
 1. Download the latest `main.js`, `manifest.json`, and `styles.css` from the [Releases](https://github.com/nazdridoy/obsidian-cbt-exam/releases) page.
-2. Create a folder named `obsidian-cbt-exam` in your vault's `.obsidian/plugins/` directory.
+2. Create a folder named `cbt-exam` in your vault's `.obsidian/plugins/` directory.
 3. Move the downloaded files into that folder.
 4. Enable **CBT Exam Simulator** in Obsidian Settings > Community Plugins.
 

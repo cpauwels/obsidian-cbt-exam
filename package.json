@@ -1,7 +1,7 @@
 {
-    "name": "obsidian-cbt-exam",
+    "name": "cbt-exam",
     "version": "1.0.0",
-    "description": "CBT Exam Simulator for Obsidian",
+    "description": "CBT Exam Simulator",
     "main": "main.js",
     "scripts": {
         "dev": "node esbuild.config.mjs",
