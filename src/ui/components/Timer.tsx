@@ -21,7 +21,7 @@ export const TimerDisplay: React.FC<TimerProps> = ({ seconds, onExpire }) => {
         timer.start();
 
         return () => timer.stop();
-    }, [seconds]); // Restart if duration changes
+    }, [seconds, onExpire]); // Restart if duration changes
 
     if (seconds <= 0) return <span>No Time Limit</span>;
 

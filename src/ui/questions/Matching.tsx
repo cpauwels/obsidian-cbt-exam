@@ -22,7 +22,7 @@ export const Matching: React.FC<Props> = ({ question, answer, onChange, readOnly
             [indices[i], indices[j]] = [indices[j], indices[i]];
         }
         setRightIndices(indices);
-    }, [question.id]);
+    }, [question.id, question.rightItems]);
 
     const [selectedLeft, setSelectedLeft] = React.useState<number | null>(null);
 

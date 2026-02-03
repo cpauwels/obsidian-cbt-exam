@@ -57,13 +57,21 @@ const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void }> = ({
     const [result, setResult] = React.useState<ExamResult | null>(null);
     const [showCurrentAnswer, setShowCurrentAnswer] = React.useState(false); // New state for showing answer
 
+    const handleSubmit = React.useCallback(() => {
+        // Calculate score
+        const finalSession = managerRef.current.submit();
+        setSession(finalSession);
+        const res = ScoringEngine.calculateScore(finalSession);
+        setResult(res);
+    }, []);
+
     React.useEffect(() => {
         console.debug("ExamUI Mounted. Definition:", definition);
         // Start exam on mount
         const s = managerRef.current.start();
         console.debug("Session started:", s);
         setSession(s);
-    }, []);
+    }, [definition]);
 
     if (!session) {
         return <div>Initializing session...</div>;
@@ -82,13 +90,7 @@ const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void }> = ({
         }
     };
 
-    const handleSubmit = () => {
-        // Calculate score
-        const finalSession = managerRef.current.submit();
-        setSession(finalSession);
-        const res = ScoringEngine.calculateScore(finalSession);
-        setResult(res);
-    };
+
 
     const handleReview = () => {
         // Switch to review mode
@@ -204,7 +206,7 @@ function renderQuestion(
     q: Question,
     ans: UserAnswerState | undefined,
     onChange: (ans: Partial<UserAnswerState>) => void,
-    showResult: boolean = false
+    showResult = false
 ): React.ReactNode {
     if (!q) return <div>Error: Question not found</div>;
     switch (q.type) {
