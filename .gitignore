@@ -2,3 +2,5 @@ node_modules
 main.js
 styles.css
 .DS_Store
+
+naz-ref/*

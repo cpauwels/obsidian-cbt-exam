@@ -10,7 +10,7 @@ interface Props {
 }
 
 export const SelectAll: React.FC<Props> = ({ question, answer, onChange, readOnly, showResult }) => {
-    const safeAnswer = answer || { status: 'UNANSWERED' } as UserAnswerState;
+    const safeAnswer = answer ?? { status: 'UNANSWERED', questionId: '' };
     const selectedIndices = new Set(safeAnswer.selectedOptionIndices || []);
 
     const toggle = (idx: number) => {

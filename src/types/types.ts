@@ -109,3 +109,12 @@ export interface ExamResult {
 
     questionResults: QuestionResult[];
 }
+
+export interface FrontmatterResult {
+    title?: string;
+    timeLimit?: number;
+    passThreshold?: number;
+    shuffle?: boolean;
+    showAnswer?: boolean;
+}
+

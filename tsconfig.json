@@ -22,5 +22,9 @@
     "include": [
         "**/*.ts",
         "**/*.tsx"
+    ],
+    "exclude": [
+        "naz-ref/**",
+        "node_modules/**"
     ]
 }

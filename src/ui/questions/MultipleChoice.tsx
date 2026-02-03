@@ -10,8 +10,8 @@ interface Props {
 }
 
 export const MultipleChoice: React.FC<Props> = ({ question, answer, onChange, readOnly, showResult }) => {
-    // Safety check with type casting to satisfy TS
-    const safeAnswer = answer || { status: 'UNANSWERED' } as UserAnswerState;
+    // Safety check with default values
+    const safeAnswer = answer ?? { status: 'UNANSWERED', questionId: '' };
 
     return (
         <div className="question-mc">

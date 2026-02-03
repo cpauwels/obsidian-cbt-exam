@@ -47,11 +47,12 @@ export class ScoringEngine {
         let isCorrect = false;
 
         switch (q.type) {
-            case 'MC':
+            case 'MC': {
                 if (answer.selectedOptionIndex === q.correctOptionIndex) isCorrect = true;
                 break;
+            }
 
-            case 'SATA':
+            case 'SATA': {
                 // Strict grading: match exact set
                 if (answer.selectedOptionIndices && q.correctOptionIndices) {
                     const userSet = new Set(answer.selectedOptionIndices);
@@ -61,12 +62,14 @@ export class ScoringEngine {
                     }
                 }
                 break;
+            }
 
-            case 'TF':
+            case 'TF': {
                 if (answer.booleanSelection === q.isTrue) isCorrect = true;
                 break;
+            }
 
-            case 'MATCH':
+            case 'MATCH': {
                 // Check all pairs
                 if (answer.matchedPairs && q.pairs) {
                     // map correct pairs for easy lookup: leftIndex -> rightIndex
@@ -81,8 +84,9 @@ export class ScoringEngine {
                     }
                 }
                 break;
+            }
 
-            case 'FIB':
+            case 'FIB': {
                 if (answer.textInputs && q.correctAnswers) {
                     // Case insensitive match for each blank
                     if (answer.textInputs.length === q.correctAnswers.length) {
@@ -93,14 +97,16 @@ export class ScoringEngine {
                     }
                 }
                 break;
+            }
 
             case 'SA':
-            case 'LA':
+            case 'LA': {
                 // Simple grading: correct if any non-empty input is provided
                 if (answer.textInputs && answer.textInputs[0] && answer.textInputs[0].trim().length > 0) {
                     isCorrect = true;
                 }
                 break;
+            }
         }
 
         baseResult.isCorrect = isCorrect;

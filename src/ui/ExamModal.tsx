@@ -1,7 +1,7 @@
 import { App, Modal } from "obsidian";
 import * as React from "react";
 import * as ReactDOM from "react-dom/client";
-import { ExamDefinition, ExamSession, UserAnswerState } from "../types/types";
+import { ExamDefinition, ExamSession, UserAnswerState, ExamResult, Question } from "../types/types";
 import { ExamSessionManager } from "../exam/examSession";
 import { ScoringEngine } from "../exam/scoringEngine";
 import { TimerDisplay } from "./components/Timer";
@@ -35,8 +35,7 @@ export class ExamModal extends Modal {
 
         // Root container for React
         const reactContainer = contentEl.createDiv();
-        reactContainer.style.height = "100%";
-        reactContainer.style.width = "100%";
+        reactContainer.addClass("exam-react-container");
 
         this.root = ReactDOM.createRoot(reactContainer);
         this.root.render(<ExamUI definition={this.definition} onClose={() => this.close()} />);
@@ -55,19 +54,19 @@ const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void }> = ({
     // We use a ref to hold the manager, but state to force re-renders
     const managerRef = React.useRef(new ExamSessionManager(definition));
     const [session, setSession] = React.useState<ExamSession>(managerRef.current.getSession());
-    const [result, setResult] = React.useState<any | null>(null);
+    const [result, setResult] = React.useState<ExamResult | null>(null);
     const [showCurrentAnswer, setShowCurrentAnswer] = React.useState(false); // New state for showing answer
 
     React.useEffect(() => {
-        console.log("ExamUI Mounted. Definition:", definition);
+        console.debug("ExamUI Mounted. Definition:", definition);
         // Start exam on mount
         const s = managerRef.current.start();
-        console.log("Session started:", s);
+        console.debug("Session started:", s);
         setSession(s);
     }, []);
 
     if (!session) {
-        return <div>Initializing Session...</div>;
+        return <div>Initializing session...</div>;
     }
 
     const handleAnswer = (ans: Partial<UserAnswerState>) => {
@@ -96,7 +95,7 @@ const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void }> = ({
         // We can treat REVIEW as a status in session, or just navigate back to Q1 and hide result view
         // We might need to update the session status to REVIEW if we want specific logic
         // Update the manager's status so subsequent calls (like setIndex) preserve it
-        const reviewSession = managerRef.current.setStatus('REVIEW');
+        managerRef.current.setStatus('REVIEW');
         managerRef.current.setIndex(0); // Reset index
 
         // We need to re-fetch session after setIndex, or just manually compose
@@ -133,7 +132,7 @@ const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void }> = ({
                     {/* Show Answer Toggle - Only if enabled and not in review */}
                     {canShowAnswer && (
                         <button onClick={() => setShowCurrentAnswer(!showCurrentAnswer)}>
-                            {showCurrentAnswer ? "Hide Answer" : "Show Answer"}
+                            {showCurrentAnswer ? "Hide answer" : "Show answer"}
                         </button>
                     )}
                     <TimerDisplay seconds={session.timeLimitSeconds} onExpire={handleSubmit} />
@@ -168,14 +167,14 @@ const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void }> = ({
                             className="mod-cta"
                             onClick={() => setResult(ScoringEngine.calculateScore(session))} // Go back to results
                         >
-                            Exit Review
+                            Exit review
                         </button>
                     ) : (
                         <button
                             className="mod-cta"
                             onClick={handleSubmit}
                         >
-                            Submit Exam
+                            Submit exam
                         </button>
                     )}
 
@@ -201,16 +200,21 @@ const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void }> = ({
     );
 };
 
-function renderQuestion(q: any, ans: any, onChange: any, showResult: boolean = false) {
+function renderQuestion(
+    q: Question,
+    ans: UserAnswerState | undefined,
+    onChange: (ans: Partial<UserAnswerState>) => void,
+    showResult: boolean = false
+): React.ReactNode {
     if (!q) return <div>Error: Question not found</div>;
     switch (q.type) {
-        case 'MC': return <MultipleChoice question={q} answer={ans} onChange={onChange} showResult={showResult} />;
-        case 'SATA': return <SelectAll question={q} answer={ans} onChange={onChange} showResult={showResult} />;
-        case 'TF': return <TrueFalse question={q} answer={ans} onChange={onChange} showResult={showResult} />;
-        case 'MATCH': return <Matching question={q} answer={ans} onChange={onChange} showResult={showResult} />;
-        case 'FIB': return <FillInBlank question={q} answer={ans} onChange={onChange} showResult={showResult} />;
+        case 'MC': return <MultipleChoice question={q} answer={ans!} onChange={onChange} showResult={showResult} />;
+        case 'SATA': return <SelectAll question={q} answer={ans!} onChange={onChange} showResult={showResult} />;
+        case 'TF': return <TrueFalse question={q} answer={ans!} onChange={onChange} showResult={showResult} />;
+        case 'MATCH': return <Matching question={q} answer={ans!} onChange={onChange} showResult={showResult} />;
+        case 'FIB': return <FillInBlank question={q} answer={ans!} onChange={onChange} showResult={showResult} />;
         case 'SA':
-        case 'LA': return <ShortLongAnswer question={q} answer={ans} onChange={onChange} showResult={showResult} />;
-        default: return <div>Unknown Question Type: {q.type}</div>;
+        case 'LA': return <ShortLongAnswer question={q} answer={ans!} onChange={onChange} showResult={showResult} />;
+        default: return <div>Unknown question type: {(q as Question).type}</div>;
     }
 }

@@ -29,7 +29,6 @@ c) Leonardo da Vinci
 d) Michelangelo
 = c
 
----
 
 # Select All That Apply (@sata)
 
@@ -57,7 +56,6 @@ d) India
 e) Antarctica
 = a, c, e
 
----
 
 # True / False (@tf)
 
@@ -70,7 +68,6 @@ e) Antarctica
 @tf 9) Spiders are insects.
 = false
 
----
 
 # Fill In The Blank (@fib)
 
@@ -83,7 +80,6 @@ e) Antarctica
 @fib 12) H2O is the chemical formula for `_______`.
 = Water
 
----
 
 # Matching (@match)
 
@@ -105,7 +101,6 @@ Yen | Japan
 Euro | Germany
 Pound | UK
 
----
 
 # Short Answer (@sa)
 
@@ -118,7 +113,6 @@ Pound | UK
 @sa 18) Name the largest ocean on Earth.
 = Pacific
 
----
 
 # Long Answer (@la)
 

@@ -1,13 +1,13 @@
-import { Plugin, Editor, MarkdownView, Notice, TFile } from "obsidian";
+import { Plugin, Notice, TFile } from "obsidian";
 import { FlashQuizParser } from "./parser/flashquizParser";
 import { ExamModal } from "./ui/ExamModal";
 
 export default class CBTExamPlugin extends Plugin {
-    async onload() {
+    onload() {
         // Register command to start exam
         this.addCommand({
-            id: 'start-cbt-exam',
-            name: 'Start Exam from current file',
+            id: 'start-exam',
+            name: 'Start exam from current file',
             checkCallback: (checking: boolean) => {
                 const activeFile = this.app.workspace.getActiveFile();
                 if (activeFile) {
@@ -20,7 +20,7 @@ export default class CBTExamPlugin extends Plugin {
             }
         });
 
-        this.addRibbonIcon('graduation-cap', 'Start CBT Exam', () => {
+        this.addRibbonIcon('graduation-cap', 'Start CBT exam', () => {
             const activeFile = this.app.workspace.getActiveFile();
             if (activeFile) {
                 this.startExam(activeFile);
@@ -37,9 +37,9 @@ export default class CBTExamPlugin extends Plugin {
             const content = await this.app.vault.read(file);
 
             // Parse
-            console.log("Parsing content from", file.path);
+            console.debug("Parsing content from", file.path);
             const examDefinition = FlashQuizParser.parse(content, file.path);
-            console.log("Parsed Definition:", examDefinition);
+            console.debug("Parsed Definition:", examDefinition);
 
             if (examDefinition.questions.length === 0) {
                 new Notice("No questions found in this file. Make sure to use @mc, @tf, etc.");

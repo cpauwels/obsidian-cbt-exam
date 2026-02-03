@@ -1,18 +1,21 @@
-import { Question, QuestionType, ExamDefinition, MultipleChoiceQuestion, SelectAllQuestion, MatchingQuestion, TrueFalseQuestion, FillInBlankQuestion, TextAnswerQuestion } from "../types/types";
+import { Question, QuestionType, ExamDefinition, MultipleChoiceQuestion, SelectAllQuestion, MatchingQuestion, TrueFalseQuestion, FillInBlankQuestion, TextAnswerQuestion, FrontmatterResult } from "../types/types";
 
 // Regex patterns
 const HEADER_REGEX = /^@(\w+)\s+(?:\d+[).]\s*)?(.*)/;
 const OPTION_REGEX = /^([a-z])[).]\s+(.*)/;
 const MATCH_PAIR_REGEX = /^(.+?)\s*\|\s*(.+)$/; // Left | Right
-// const ANSWER_KEY_REGEX = /^=\s*(.*)/; // Modified to handle multiline answers if needed, but per spec it's single line
+
+// Extended type for matching question during parsing
+interface MatchingQuestionWithRawPairs extends MatchingQuestion {
+    _rawPairs?: Array<{ left: string; right: string }>;
+}
 
 export class FlashQuizParser {
 
     public static parse(content: string, filePath: string): ExamDefinition {
         const lines = content.split('\n');
         const questions: Question[] = [];
-        let currentQ: Partial<Question> | null = null;
-        let parsingMode: 'NONE' | 'TEXT' | 'OPTIONS' | 'PAIRS' = 'NONE';
+        let currentQ: Partial<Question> & { _rawPairs?: Array<{ left: string; right: string }> } | null = null;
 
         // Metadata extraction (simple frontmatter regex)
         // Note: Obsidian usually handles frontmatter, but for raw text parsing we might need this.
@@ -44,14 +47,11 @@ export class FlashQuizParser {
                         questionText: questionText,
                         // Initialize type-specific arrays
                         options: (type === 'MC' || type === 'SATA') ? [] : undefined,
-                        // @ts-ignore
                         pairs: (type === 'MATCH') ? [] : undefined,
-                        // @ts-ignore
                         leftItems: (type === 'MATCH') ? [] : undefined,
-                        // @ts-ignore
-                        rightItems: (type === 'MATCH') ? [] : undefined
-                    } as any;
-                    parsingMode = 'TEXT';
+                        rightItems: (type === 'MATCH') ? [] : undefined,
+                        _rawPairs: (type === 'MATCH') ? [] : undefined
+                    } as Partial<Question> & { _rawPairs?: Array<{ left: string; right: string }> };
                 }
                 continue;
             }
@@ -87,8 +87,8 @@ export class FlashQuizParser {
                         const left = pairMatch[1].trim();
                         const right = pairMatch[2].trim();
                         // We temporarily store raw pairs, finalize will convert to indices
-                        if (!(currentQ as any)._rawPairs) (currentQ as any)._rawPairs = [];
-                        (currentQ as any)._rawPairs.push({ left, right });
+                        if (!currentQ._rawPairs) currentQ._rawPairs = [];
+                        currentQ._rawPairs.push({ left, right });
                     } else {
                         currentQ.questionText += '\n' + line;
                     }
@@ -140,14 +140,14 @@ export class FlashQuizParser {
         return Math.abs(hash).toString(36);
     }
 
-    private static parseFrontmatter(content: string): { title?: string, timeLimit?: number, passThreshold?: number, shuffle?: boolean, showAnswer?: boolean } {
+    private static parseFrontmatter(content: string): FrontmatterResult {
         // Very basic frontmatter parser
         const frontmatterRegex = /^---\n([\s\S]*?)\n---/;
         const match = content.match(frontmatterRegex);
         if (!match) return {};
 
         const yaml = match[1];
-        const result: any = {};
+        const result: FrontmatterResult = {};
 
         const titleMatch = yaml.match(/quiz-title:\s*(.*)/);
         if (titleMatch) result.title = titleMatch[1].replace(/['"]/g, '').trim();
@@ -167,23 +167,26 @@ export class FlashQuizParser {
         return result;
     }
 
-    private static parseAnswer(q: Partial<Question>, answerText: string) {
+    private static parseAnswer(q: Partial<Question>, answerText: string): void {
         switch (q.type) {
-            case 'MC':
+            case 'MC': {
                 // = b
                 const mcIdx = answerText.toLowerCase().charCodeAt(0) - 97; // 'a' code is 97
                 (q as MultipleChoiceQuestion).correctOptionIndex = mcIdx;
                 break;
-            case 'SATA':
+            }
+            case 'SATA': {
                 // = a, c, e
                 const indices = answerText.split(',').map(s => s.trim().toLowerCase().charCodeAt(0) - 97);
                 (q as SelectAllQuestion).correctOptionIndices = indices;
                 break;
-            case 'TF':
+            }
+            case 'TF': {
                 // = true
                 (q as TrueFalseQuestion).isTrue = (answerText.toLowerCase() === 'true');
                 break;
-            case 'FIB':
+            }
+            case 'FIB': {
                 // = Answer1, Answer2
                 // Also need to parse the blanks in the text "The `____` is..."
                 const answers = answerText.split(',').map(s => s.trim());
@@ -193,24 +196,27 @@ export class FlashQuizParser {
                 const parts = q.questionText!.split(/`_+`/);
                 (q as FillInBlankQuestion).segments = parts;
                 break;
-            case 'MATCH':
+            }
+            case 'MATCH': {
                 // No specific answer line needed for Match type in this format?
                 // Wait, the spec says matching is defined by the pairs themselves.
                 // "Group B is automatically shuffled"
                 // So the input *IS* the correct pairing.
                 // Left | Right  <-- this is a correct pair.
                 break;
+            }
             case 'SA':
-            case 'LA':
+            case 'LA': {
                 (q as TextAnswerQuestion).correctAnswerText = answerText;
                 break;
+            }
         }
     }
 
-    private static finalizeQuestion(list: Question[], q: Partial<Question>) {
+    private static finalizeQuestion(list: Question[], q: Partial<Question> & { _rawPairs?: Array<{ left: string; right: string }> }): void {
         // Post-processing
         if (q.type === 'MATCH') {
-            const mq = q as MatchingQuestion & { _rawPairs: { left: string, right: string }[] };
+            const mq = q as MatchingQuestionWithRawPairs;
             if (!mq._rawPairs) return; // Invalid?
 
             mq.leftItems = [];
@@ -222,7 +228,7 @@ export class FlashQuizParser {
                 mq.rightItems.push(pair.right);
                 mq.pairs.push({ left: idx, right: idx }); // Initially 0-0, 1-1 because input is aligned
             });
-            delete (mq as any)._rawPairs;
+            delete mq._rawPairs;
         }
 
         // Basic Validation
