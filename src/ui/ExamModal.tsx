@@ -210,13 +210,13 @@ function renderQuestion(
 ): React.ReactNode {
     if (!q) return <div>Error: Question not found</div>;
     switch (q.type) {
-        case 'MC': return <MultipleChoice question={q} answer={ans!} onChange={onChange} showResult={showResult} />;
-        case 'SATA': return <SelectAll question={q} answer={ans!} onChange={onChange} showResult={showResult} />;
-        case 'TF': return <TrueFalse question={q} answer={ans!} onChange={onChange} showResult={showResult} />;
-        case 'MATCH': return <Matching question={q} answer={ans!} onChange={onChange} showResult={showResult} />;
-        case 'FIB': return <FillInBlank question={q} answer={ans!} onChange={onChange} showResult={showResult} />;
+        case 'MC': return <MultipleChoice question={q} answer={ans} onChange={onChange} showResult={showResult} />;
+        case 'SATA': return <SelectAll question={q} answer={ans} onChange={onChange} showResult={showResult} />;
+        case 'TF': return <TrueFalse question={q} answer={ans} onChange={onChange} showResult={showResult} />;
+        case 'MATCH': return <Matching question={q} answer={ans} onChange={onChange} showResult={showResult} />;
+        case 'FIB': return <FillInBlank question={q} answer={ans} onChange={onChange} showResult={showResult} />;
         case 'SA':
-        case 'LA': return <ShortLongAnswer question={q} answer={ans!} onChange={onChange} showResult={showResult} />;
+        case 'LA': return <ShortLongAnswer question={q} answer={ans} onChange={onChange} showResult={showResult} />;
         default: return <div>Unknown question type: {(q as Question).type}</div>;
     }
 }

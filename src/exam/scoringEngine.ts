@@ -1,4 +1,4 @@
-import { ExamDefinition, ExamResult, ExamSession, Question, QuestionResult, UserAnswerState } from "../types/types";
+import { ExamResult, ExamSession, Question, QuestionResult, UserAnswerState } from "../types/types";
 
 export class ScoringEngine {
 

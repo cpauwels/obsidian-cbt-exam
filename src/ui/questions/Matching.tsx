@@ -165,7 +165,7 @@ export const Matching: React.FC<Props> = ({ question, answer, onChange, readOnly
                                     color: 'white', borderRadius: '50%', width: '20px', height: '20px',
                                     display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '0.8em',
                                     zIndex: 2
-                                }}>{pairedLeft! + 1}</span>}
+                                }}>{pairedLeft + 1}</span>}
 
                                 {/* Correct Answer Badge (Only shown in showResult/Review if user was wrong or didn't answer) */}
                                 {showResult && !isCorrectPair && (

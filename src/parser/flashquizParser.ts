@@ -73,11 +73,11 @@ export class FlashQuizParser {
                         // It's an option: "a) Content"
                         // ensure options array exists
                         if (!(currentQ as MultipleChoiceQuestion).options) (currentQ as MultipleChoiceQuestion).options = [];
-                        (currentQ as MultipleChoiceQuestion).options!.push(optionMatch[2]);
+                        (currentQ as MultipleChoiceQuestion).options.push(optionMatch[2]);
                     } else {
                         // It's continuation of question text? Or continuation of previous option?
                         // For simplicity, assume multiline question text if no option start
-                        if ((currentQ as MultipleChoiceQuestion).options!.length === 0) {
+                        if ((currentQ as MultipleChoiceQuestion).options.length === 0) {
                             currentQ.questionText += '\n' + line;
                         }
                     }
@@ -193,7 +193,7 @@ export class FlashQuizParser {
                 (q as FillInBlankQuestion).correctAnswers = answers;
 
                 // Construct segments from question text
-                const parts = q.questionText!.split(/`_+`/);
+                const parts = q.questionText.split(/`_+`/);
                 (q as FillInBlankQuestion).segments = parts;
                 break;
             }

@@ -12,7 +12,9 @@ export default class CBTExamPlugin extends Plugin {
                 const activeFile = this.app.workspace.getActiveFile();
                 if (activeFile) {
                     if (!checking) {
-                        this.startExam(activeFile);
+                        this.startExam(activeFile).catch(e => {
+                            console.error("Failed to start exam via command:", e);
+                        });
                     }
                     return true;
                 }
@@ -20,10 +22,12 @@ export default class CBTExamPlugin extends Plugin {
             }
         });
 
-        this.addRibbonIcon('graduation-cap', 'Start CBT exam', () => {
+        this.addRibbonIcon('graduation-cap', 'Start exam', () => {
             const activeFile = this.app.workspace.getActiveFile();
             if (activeFile) {
-                this.startExam(activeFile);
+                this.startExam(activeFile).catch(e => {
+                    console.error("Failed to start exam via ribbon:", e);
+                });
             } else {
                 new Notice("Please open a quiz file first.");
             }
