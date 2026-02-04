@@ -22,7 +22,7 @@ Configure quiz settings at the beginning of the file using YAML frontmatter.
 | `time-limit`   | Number  | Time limit for the quiz in minutes               | `time-limit: 30`           |
 | `pass-score`   | Number  | Minimum percentage required to pass              | `pass-score: 70`           |
 | `shuffle`      | Boolean | Whether to shuffle the question order            | `shuffle: true`            |
-| `show-answer`  | Boolean | Whether to show answers after quiz completion    | `show-answer: true`        |
+| `show-answer`  | Boolean | Whether to show answers during the quiz (flashcard mode)   | `show-answer: true`        |
 
 **Example:**
 ```yaml
@@ -113,11 +113,10 @@ d) Neon
 
 ### 2. Start the Exam
 - **Ribbon**: Click the graduation cap icon 🎓 in the left ribbon.
-- **Command Palette**: Search for **"Start Exam from current file"** (`Ctrl/Cmd + P`).
+- **Command Palette**: Search for **"Start exam from current file"** (`Ctrl/Cmd + P`).
 
 ### 3. Navigation & Submission
 - Use the **Question Navigator** tab to jump between questions.
-- Flag questions for review if you're unsure.
 - Use the **Quit** button to exit the exam at any time.
 - Click **Submit** (or wait for the timer) to view results.
 

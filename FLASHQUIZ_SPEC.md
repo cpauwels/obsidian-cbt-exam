@@ -12,7 +12,7 @@ You can configure the quiz settings at the beginning of the file using YAML fron
 | `time-limit`   | Number  | Time limit for the quiz in minutes               | `time-limit: 30`           |
 | `pass-score`   | Number  | Minimum percentage required to pass              | `pass-score: 70`           |
 | `shuffle`      | Boolean | Whether to shuffle the question order            | `shuffle: true`            |
-| `show-answer`  | Boolean | Whether to show answers after quiz completion    | `show-answer: true`        |
+| `show-answer`  | Boolean | Whether to show answers during the quiz (flashcard mode)   | `show-answer: true`        |
 
 **Example:**
 ```yaml
