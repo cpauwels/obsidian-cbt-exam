@@ -12,6 +12,10 @@ An [Obsidian](https://obsidian.md/) plugin for creating interactive, timed exams
 - **Review Mode**: Review your results after submission with color-coded navigation (green/red) to quickly identify correct and incorrect answers.
 - **Shuffle & Timer**: Configurable time limits and question/option shuffling managed via note frontmatter.
 
+## Demo
+
+https://github.com/user-attachments/assets/7c204aa9-5441-467b-952e-5311a269e0c3
+
 ## YAML Frontmatter
 
 Configure quiz settings at the beginning of the file using YAML frontmatter.
@@ -59,9 +63,6 @@ Questions are defined using specific markers followed by the question text and a
 4.  **Multiple Answers**: Separate multiple answers with a comma and space (e.g., `= a, c`).
 5.  **Question Separator**: Questions should be separated by a blank line or the next marker.
 
-## Demo
-
-https://github.com/user-attachments/assets/7c204aa9-5441-467b-952e-5311a269e0c3
 
 ---
 
