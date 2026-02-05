@@ -27,7 +27,7 @@ export class ScoringEngine {
             maxScore,
             percentage,
             isPass,
-            durationSeconds: (Date.now() - session.startTime) / 1000,
+            durationSeconds: ((session.endTime || Date.now()) - session.startTime) / 1000,
             questionResults: results
         };
     }

@@ -102,7 +102,13 @@ export const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void,
                             {showCurrentAnswer ? "Hide answer" : "Show answer"}
                         </button>
                     )}
-                    <TimerDisplay seconds={session.timeLimitSeconds} onExpire={handleSubmit} />
+                    {isReviewMode && result ? (
+                        <span className="exam-timer" style={{ fontWeight: 'bold' }}>
+                            Time Taken: {Math.floor(result.durationSeconds / 60)}:{(Math.floor(result.durationSeconds % 60)).toString().padStart(2, '0')}
+                        </span>
+                    ) : (
+                        <TimerDisplay seconds={session.timeLimitSeconds} onExpire={handleSubmit} />
+                    )}
                     <button
                         aria-label="Quit Exam"
                         onClick={onClose}
