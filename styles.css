@@ -121,6 +121,22 @@
     background-color: var(--background-secondary);
 }
 
+.nav-button {
+    position: relative;
+    /* For the mark dot */
+}
+
+.nav-button-mark-dot {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 6px;
+    height: 6px;
+    background-color: #f1c40f;
+    border-radius: 50%;
+    border: 1px solid white;
+}
+
 /* =========================================================================
    2. SHARED COMPONENTS
    ========================================================================= */
@@ -250,6 +266,27 @@
 .question-count {
     color: var(--text-muted);
     margin-bottom: 0.5rem;
+}
+
+.question-mark-toggle {
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.2s ease;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.question-mark-toggle:hover {
+    background-color: var(--background-modifier-hover);
+    color: var(--interactive-accent);
+}
+
+.question-mark-toggle.is-marked {
+    color: #f1c40f;
+    transform: scale(1.1);
 }
 
 .question-help-text {
@@ -581,6 +618,27 @@
     color: var(--text-muted);
     border: 1px solid var(--background-modifier-border);
     box-shadow: none;
+}
+
+.result-indicator {
+    position: relative;
+}
+
+.result-indicator-mark {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background-color: #f1c40f;
+    color: white;
+    border-radius: 50%;
+    width: 14px;
+    height: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--background-primary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    z-index: 1;
 }
 
 .results-stats-grid {

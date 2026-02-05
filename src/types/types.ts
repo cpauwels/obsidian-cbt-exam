@@ -78,6 +78,7 @@ export interface UserAnswerState {
     booleanSelection?: boolean;            // TF
     textInputs?: string[];                 // FIB, SA, LA
     matchedPairs?: Array<{ l: number, r: number }>; // MATCH
+    isMarked?: boolean;                    // Question marked by user
 }
 
 export interface ExamSession {

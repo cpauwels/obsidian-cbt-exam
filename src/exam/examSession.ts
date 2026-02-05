@@ -52,6 +52,20 @@ export class ExamSessionManager {
         return { ...this.session };
     }
 
+    public toggleMark(questionId: string): ExamSession {
+        if (this.session.status === 'REVIEW' || this.session.status === 'SUBMITTED') return this.session;
+
+        const current = this.session.answers[questionId];
+        if (!current) return this.session;
+
+        this.session.answers[questionId] = {
+            ...current,
+            isMarked: !current.isMarked
+        };
+
+        return { ...this.session };
+    }
+
     public toggleFlag(questionId: string): ExamSession {
         if (this.session.status !== 'IN_PROGRESS') return this.session;
         const current = this.session.answers[questionId];

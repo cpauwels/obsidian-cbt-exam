@@ -60,6 +60,11 @@ export const ResultsView: React.FC<Props> = ({ result, onClose, onReview, onReta
                                 title={`Question ${idx + 1}: ${status.charAt(0).toUpperCase() + status.slice(1)} - Click to review`}
                                 onClick={() => onReview(idx)}
                             >
+                                {qr.userAnswer.isMarked && (
+                                    <div className="result-indicator-mark" title="Marked question">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" /><path d="m9 12 2 2 4-4" /></svg>
+                                    </div>
+                                )}
                                 {idx + 1}
                             </div>
                         );

@@ -4,7 +4,7 @@ import { AnswerStatus, ExamResult } from "../../types/types";
 interface NavProps {
     total: number;
     current: number;
-    answers: Record<string, { status: AnswerStatus }>;
+    answers: Record<string, { status: AnswerStatus, isMarked?: boolean }>;
     questionIds: string[];
     onNavigate: (index: number) => void;
     examResult?: ExamResult | null;
@@ -46,6 +46,9 @@ export const QuestionNav: React.FC<NavProps> = ({ total, current, answers, quest
                         className={`nav-button ${statusClass}`}
                     >
                         {idx + 1}
+                        {answers[qid]?.isMarked && (
+                            <div className="nav-button-mark-dot" />
+                        )}
                     </button>
                 );
             })}

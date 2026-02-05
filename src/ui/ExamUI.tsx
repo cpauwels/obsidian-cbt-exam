@@ -121,8 +121,17 @@ export const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void,
 
             {/* Main Content */}
             <div className="exam-body">
-                <div className="question-count">
-                    Question {session.currentQuestionIndex + 1} of {definition.questions.length}
+                <div className="question-count-container u-flex u-flex-center u-flex-justify-between">
+                    <div className="question-count">
+                        Question {session.currentQuestionIndex + 1} of {definition.questions.length}
+                    </div>
+                    <div
+                        className={`question-mark-toggle ${currentAns?.isMarked ? 'is-marked' : ''} ${isReviewMode ? 'u-cursor-default' : ''}`}
+                        onClick={() => !isReviewMode && setSession(managerRef.current.toggleMark(currentQ.id))}
+                        title={isReviewMode ? (currentAns?.isMarked ? "Marked" : "") : (currentAns?.isMarked ? "Unmark question" : "Mark question")}
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-check-circle-2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" /><path d="m9 12 2 2 4-4" /></svg>
+                    </div>
                 </div>
 
                 {currentQ.error && (
