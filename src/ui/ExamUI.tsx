@@ -93,9 +93,9 @@ export const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void,
         <div className="exam-ui-layout">
             {/* Header */}
             <div className="exam-header">
-                <div style={{ fontWeight: 'bold' }}>{definition.title}</div>
+                <div className="exam-title">{definition.title}</div>
 
-                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                <div className="u-flex u-flex-center u-flex-gap-1">
                     {/* Show Answer Toggle - Only if enabled and not in review */}
                     {canShowAnswer && (
                         <button onClick={() => setShowCurrentAnswer(!showCurrentAnswer)}>
@@ -103,7 +103,7 @@ export const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void,
                         </button>
                     )}
                     {isReviewMode && result ? (
-                        <span className="exam-timer" style={{ fontWeight: 'bold' }}>
+                        <span className="exam-timer u-bold">
                             Time Taken: {Math.floor(result.durationSeconds / 60)}:{(Math.floor(result.durationSeconds % 60)).toString().padStart(2, '0')}
                         </span>
                     ) : (
@@ -112,7 +112,7 @@ export const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void,
                     <button
                         aria-label="Quit Exam"
                         onClick={onClose}
-                        style={{ backgroundColor: 'var(--color-red)', color: 'white' }}
+                        className="button-quit"
                     >
                         Quit
                     </button>
@@ -121,7 +121,7 @@ export const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void,
 
             {/* Main Content */}
             <div className="exam-body">
-                <div style={{ marginBottom: '0rem', color: 'var(--text-muted)' }}>
+                <div className="question-count">
                     Question {session.currentQuestionIndex + 1} of {definition.questions.length}
                 </div>
 
@@ -140,7 +140,7 @@ export const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void,
                 {/* Show Answer Toggle - Only if enabled and not in review */}
 
 
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <div className="u-flex u-flex-justify-between">
                     <button
                         onClick={() => handleNavigate(session.currentQuestionIndex - 1)}
                         disabled={session.currentQuestionIndex === 0}
@@ -183,7 +183,7 @@ export const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void,
                     </button>
                 </div>
 
-                <div style={{ maxHeight: '100px', overflowY: 'auto' }}>
+                <div className="exam-nav-container">
                     <QuestionNav
                         total={definition.questions.length}
                         current={session.currentQuestionIndex}

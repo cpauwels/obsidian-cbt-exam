@@ -18,7 +18,7 @@ export const MultipleChoice: React.FC<Props> = ({ question, answer, onChange, re
 
     return (
         <div className="question-mc">
-            <div className="question-text" style={{ marginBottom: '1rem' }}>
+            <div className="question-text u-mb-1">
                 <MarkdownContent app={app} content={question.questionText} />
             </div>
             <div className="options-list">
@@ -44,10 +44,10 @@ export const MultipleChoice: React.FC<Props> = ({ question, answer, onChange, re
                             className={`option-item ${statusClass}`}
                             onClick={() => !readOnly && !showResult && onChange({ selectedOptionIndex: idx })}
                         >
-                            <span style={{ fontWeight: 'bold', marginRight: '0.5rem' }}>
+                            <span className="option-label">
                                 {question.optionLabels ? question.optionLabels[idx] : String.fromCharCode(97 + idx) + ')'}
                             </span>
-                            <div style={{ flex: 1 }}>
+                            <div className="option-content">
                                 <MarkdownContent app={app} content={opt} />
                             </div>
                         </div>

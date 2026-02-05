@@ -12,10 +12,9 @@ interface NavProps {
 
 export const QuestionNav: React.FC<NavProps> = ({ total, current, answers, questionIds, onNavigate, examResult }) => {
     return (
-        <div className="exam-nav-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(30px, 1fr))', gap: '5px' }}>
+        <div className="exam-nav-grid">
             {questionIds.map((qid, idx) => {
                 const status = answers[qid]?.status || 'UNANSWERED';
-                let bg = 'var(--background-secondary)';
 
                 // Check for review mode / result availability
                 let isIncorrect = false;
@@ -26,22 +25,22 @@ export const QuestionNav: React.FC<NavProps> = ({ total, current, answers, quest
                         if (qr.isCorrect) isCorrect = true;
                         else isIncorrect = true;
                     } else {
-                        // Fallback if result for question is missing
                         isIncorrect = true;
                     }
                 }
 
-                if (idx === current) bg = 'var(--interactive-accent)';
-                else if (isIncorrect) bg = 'var(--color-red)';
-                else if (isCorrect) bg = 'var(--color-green)';
-                else if (status === 'ANSWERED') bg = 'var(--interactive-accent-hover)';
-                else if (status === 'FLAGGED') bg = 'var(--text-warning)';
+                let statusClass = "unanswered";
+                if (idx === current) statusClass = "current";
+                else if (isIncorrect) statusClass = "incorrect";
+                else if (isCorrect) statusClass = "correct";
+                else if (status === 'ANSWERED') statusClass = "answered";
+                else if (status === 'FLAGGED') statusClass = "flagged";
 
                 return (
                     <button
                         key={qid}
                         onClick={() => onNavigate(idx)}
-                        style={{ backgroundColor: bg, border: 'none', borderRadius: '4px', cursor: 'pointer', color: 'var(--text-normal)' }}
+                        className={`nav-button ${statusClass}`}
                     >
                         {idx + 1}
                     </button>

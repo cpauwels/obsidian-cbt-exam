@@ -70,14 +70,14 @@ export const Matching: React.FC<Props> = ({ question, answer, onChange, readOnly
 
     return (
         <div className="question-matching">
-            <div className="question-text" style={{ marginBottom: '1rem' }}>
+            <div className="question-text u-mb-1">
                 <MarkdownContent app={app} content={question.questionText} />
             </div>
 
-            <div className="matching-columns" style={{ display: 'flex', gap: '2rem' }}>
+            <div className="matching-columns">
                 {/* Left Column */}
-                <div className="column left" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    <div style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>Items</div>
+                <div className="matching-column left">
+                    <div className="u-bold u-mb-05">Items</div>
                     {question.leftItems.map((item, idx) => {
                         const isSelected = selectedLeft === idx;
                         const isPaired = getRightForLeft(idx) !== undefined;
@@ -86,29 +86,18 @@ export const Matching: React.FC<Props> = ({ question, answer, onChange, readOnly
                             <div
                                 key={`l-${idx}`}
                                 onClick={() => handleLeftClick(idx)}
-                                style={{
-                                    padding: '0.8rem',
-                                    border: `1px solid ${isSelected ? 'var(--interactive-accent)' : 'var(--background-modifier-border)'}`,
-                                    borderRadius: '6px',
-                                    cursor: (readOnly || showResult) ? 'default' : 'pointer',
-                                    backgroundColor: isSelected ? 'var(--interactive-accent-opacity)' : (isPaired ? 'var(--background-secondary)' : 'transparent'),
-                                    position: 'relative'
-                                }}
+                                className={`matching-item ${isSelected ? 'selected' : ''} ${isPaired ? 'paired' : ''} ${(readOnly || showResult) ? 'u-cursor-default' : 'u-cursor-pointer'}`}
                             >
                                 <MarkdownContent app={app} content={item} />
-                                {isPaired && <span className="badge" style={{
-                                    position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)',
-                                    background: 'var(--interactive-accent)', color: 'white', borderRadius: '50%', width: '20px', height: '20px',
-                                    display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '0.8em'
-                                }}>{idx + 1}</span>}
+                                {isPaired && <span className="badge left">{idx + 1}</span>}
                             </div>
                         );
                     })}
                 </div>
 
                 {/* Right Column */}
-                <div className="column right" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    <div style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>Matches</div>
+                <div className="matching-column right">
+                    <div className="u-bold u-mb-05">Matches</div>
                     {rightIndices.map((dataIdx, visualIdx) => {
                         const item = question.rightItems[dataIdx];
                         const pairedLeft = getLeftForRight(dataIdx);
@@ -117,54 +106,34 @@ export const Matching: React.FC<Props> = ({ question, answer, onChange, readOnly
                         // Correct logic: dataIdx should match Left[dataIdx]
                         const isCorrectPair = pairedLeft === dataIdx;
 
-                        let borderColor = 'var(--background-modifier-border)';
-                        let bgColor = 'transparent';
+                        let statusClass = "";
 
                         if (showResult) {
-                            // In showResult, we don't necessarily highlight the box border unless user selected something
                             if (isPaired) {
-                                borderColor = isCorrectPair ? 'var(--color-green)' : 'var(--color-red)';
-                                bgColor = isCorrectPair ? 'rgba(var(--color-green-rgb), 0.1)' : 'rgba(var(--color-red-rgb), 0.1)';
+                                statusClass = isCorrectPair ? "correct" : "incorrect";
                             }
                         } else if (isPaired) {
-                            borderColor = 'var(--interactive-accent)';
-                            bgColor = 'var(--background-secondary)';
+                            statusClass = "paired";
                         }
 
                         return (
                             <div
                                 key={`r-${visualIdx}-${dataIdx}`}
                                 onClick={() => handleRightClick(dataIdx)}
-                                style={{
-                                    padding: '0.8rem',
-                                    border: `1px solid ${borderColor}`,
-                                    borderRadius: '6px',
-                                    cursor: (readOnly || showResult) ? 'default' : 'pointer',
-                                    backgroundColor: bgColor,
-                                    position: 'relative',
-                                    minHeight: '44px' // Ensure height for badges
-                                }}
+                                className={`matching-item ${statusClass} ${(readOnly || showResult) ? 'u-cursor-default' : 'u-cursor-pointer'}`}
                             >
                                 <MarkdownContent app={app} content={item} />
 
                                 {/* User Badge */}
-                                {isPaired && <span className="badge-user" style={{
-                                    position: 'absolute', right: showResult && !isCorrectPair ? '30px' : '5px', top: '50%', transform: 'translateY(-50%)',
-                                    background: showResult ? (isCorrectPair ? 'var(--color-green)' : 'var(--color-red)') : 'var(--interactive-accent)',
-                                    color: 'white', borderRadius: '50%', width: '20px', height: '20px',
-                                    display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '0.8em',
-                                    zIndex: 2
-                                }}>{pairedLeft + 1}</span>}
+                                {isPaired && (
+                                    <span className={`badge-user ${showResult && !isCorrectPair ? 'offset' : ''} ${showResult ? (isCorrectPair ? 'correct' : 'incorrect') : ''}`}>
+                                        {pairedLeft + 1}
+                                    </span>
+                                )}
 
                                 {/* Correct Answer Badge (Only shown in showResult/Review if user was wrong or didn't answer) */}
                                 {showResult && !isCorrectPair && (
-                                    <span className="badge-correct" style={{
-                                        position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)',
-                                        background: 'var(--color-green)',
-                                        color: 'white', borderRadius: '50%', width: '20px', height: '20px',
-                                        display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '0.8em',
-                                        zIndex: 1
-                                    }}>
+                                    <span className="badge-correct">
                                         {dataIdx + 1}
                                     </span>
                                 )}
@@ -173,7 +142,7 @@ export const Matching: React.FC<Props> = ({ question, answer, onChange, readOnly
                     })}
                 </div>
             </div>
-            <div style={{ marginTop: '1rem', fontSize: '0.8em', color: 'var(--text-muted)' }}>
+            <div className="u-mt-1 u-text-muted u-small">
                 Select an item on the left, then click its match on the right.
             </div>
         </div>

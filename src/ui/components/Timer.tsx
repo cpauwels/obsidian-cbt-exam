@@ -28,12 +28,13 @@ export const TimerDisplay: React.FC<TimerProps> = ({ seconds, onExpire }) => {
     const mins = Math.floor(timeLeft / 60);
     const secs = timeLeft % 60;
 
-    // Warning colors
-    const style = timeLeft < 60 ? { color: 'var(--text-error)' } :
-        timeLeft < 300 ? { color: 'var(--text-warning)' } : {};
+    // Warning levels
+    let statusClass = "";
+    if (timeLeft < 60) statusClass = "error";
+    else if (timeLeft < 300) statusClass = "warning";
 
     return (
-        <span className="exam-timer" style={{ fontWeight: 'bold', ...style }}>
+        <span className={`exam-timer ${statusClass}`}>
             {mins}:{secs.toString().padStart(2, '0')}
         </span>
     );

@@ -9,16 +9,13 @@ interface Props {
 
 export const ResultsView: React.FC<Props> = ({ result, onClose, onReview }) => {
     return (
-        <div className="exam-results" style={{ padding: '2rem', height: '100%', overflowY: 'auto' }}>
-            <div className="results-header" style={{ textAlign: 'center', marginBottom: '2rem' }}>
-                <h1 style={{ fontSize: '2.5em', margin: '0' }}>{Math.round(result.percentage)}%</h1>
-                <h2 style={{
-                    color: result.isPass ? 'var(--color-green)' : 'var(--color-red)',
-                    marginTop: '0.5rem'
-                }}>
+        <div className="results-container">
+            <div className="results-header u-text-center u-mb-2">
+                <h1 className="results-score-big">{Math.round(result.percentage)}%</h1>
+                <h2 className={`u-mt-05 ${result.isPass ? 'results-status-pass' : 'results-status-fail'}`}>
                     {result.isPass ? "PASSED" : "FAILED"}
                 </h2>
-                <div style={{ color: 'var(--text-muted)' }}>
+                <div className="u-text-muted">
                     Score: {result.totalScore} / {result.maxScore} points • Time: {Math.floor(result.durationSeconds / 60)}m {Math.floor(result.durationSeconds % 60)}s
                 </div>
             </div>
@@ -29,32 +26,25 @@ export const ResultsView: React.FC<Props> = ({ result, onClose, onReview }) => {
                     return (
                         <div
                             key={idx}
-                            style={{
-                                border: '1px solid var(--background-modifier-border)',
-                                padding: '1rem',
-                                marginBottom: '1rem',
-                                borderRadius: '6px',
-                                borderLeft: `5px solid ${qr.isCorrect ? 'var(--color-green)' : 'var(--color-red)'}`
-                            }}
+                            className={`result-card ${qr.isCorrect ? 'correct' : 'incorrect'}`}
                         >
-                            <div style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>Question {idx + 1}</div>
-                            <div>Status: <span style={{ color: qr.isCorrect ? 'var(--color-green)' : 'var(--color-red)' }}>{qr.isCorrect ? "Correct" : "Incorrect"}</span></div>
+                            <div className="u-bold u-mb-05">Question {idx + 1}</div>
+                            <div>Status: <span className={qr.isCorrect ? 'results-status-pass' : 'results-status-fail'}>{qr.isCorrect ? "Correct" : "Incorrect"}</span></div>
                         </div>
                     );
                 })}
             </div>
 
-            <div className="results-actions" style={{ marginTop: '2rem', textAlign: 'center', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+            <div className="results-actions-container">
                 <button
                     onClick={onReview}
-                    style={{ padding: '0.8rem 2rem', fontSize: '1.2em' }}
+                    className="button-large"
                 >
                     Review Answers
                 </button>
                 <button
                     onClick={onClose}
-                    className="mod-cta"
-                    style={{ padding: '0.8rem 2rem', fontSize: '1.2em' }}
+                    className="mod-cta button-large"
                 >
                     Close Exam
                 </button>

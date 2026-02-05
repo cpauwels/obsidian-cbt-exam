@@ -1,4 +1,6 @@
-/* Basic styling for exam modal */
+/* =========================================================================
+   1. LAYOUT & CORE CONTAINERS
+   ========================================================================= */
 
 .exam-view-container {
     padding: 0 !important;
@@ -12,7 +14,6 @@
     height: 100%;
     width: 100%;
 }
-
 
 .exam-ui-layout {
     font-size: 1.1em;
@@ -50,22 +51,106 @@
     flex-shrink: 0;
 }
 
-.exam-ui-layout {
-    font-size: 1.1em;
+.exam-title {
+    font-weight: bold;
 }
 
-.question-text {
-    font-size: 1.25em;
+.exam-timer {
     font-weight: bold;
-    line-height: 1.5;
+}
+
+.exam-timer.warning {
+    color: var(--text-warning);
+}
+
+.exam-timer.error {
+    color: var(--text-error);
+}
+
+/* Reset Markdown Preview Padding/Margins for tighter UI */
+.exam-ui-layout .markdown-preview-view {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* --- Navigation --- */
+
+.exam-nav-container {
+    max-height: 100px;
+    overflow-y: auto;
+}
+
+.exam-nav-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(30px, 1fr));
+    gap: 5px;
+}
+
+.exam-nav-grid button:hover {
+    filter: brightness(1.2);
+}
+
+.nav-button {
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--text-normal);
+}
+
+.nav-button.current {
+    background-color: var(--interactive-accent);
+}
+
+.nav-button.answered {
+    background-color: var(--interactive-accent-hover);
+}
+
+.nav-button.flagged {
+    background-color: var(--text-warning);
+}
+
+.nav-button.correct {
+    background-color: var(--color-green);
+}
+
+.nav-button.incorrect {
+    background-color: var(--color-red);
+}
+
+.nav-button.unanswered {
+    background-color: var(--background-secondary);
+}
+
+/* =========================================================================
+   2. SHARED COMPONENTS
+   ========================================================================= */
+
+.button-large {
+    padding: 0.8rem 2rem !important;
+    font-size: 1.2em !important;
+}
+
+.button-quit {
+    background-color: var(--color-red) !important;
+    color: white !important;
 }
 
 .option-item {
-    transition: background-color 0.2s;
+    transition: background-color 0.2s, border-color 0.2s;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    padding: 1rem;
+    cursor: pointer;
+    background-color: transparent;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    /* For grid items to stretch */
 }
 
 .option-item:hover {
     background-color: var(--background-modifier-hover);
+    border-color: var(--interactive-accent);
 }
 
 .option-item.selected {
@@ -73,29 +158,14 @@
     border-color: var(--interactive-accent);
 }
 
-/* Matching Styles */
-.column.left .badge {
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+.option-item.correct {
+    border-color: var(--color-green) !important;
+    background-color: rgba(var(--color-green-rgb), 0.1) !important;
 }
 
-/* Results View */
-.exam-results h1 {
-    margin-bottom: 0.5rem;
-}
-
-/* Question Nav Grid */
-.exam-nav-grid button:hover {
-    filter: brightness(1.2);
-}
-
-/* Inline Markdown for Fill In Blank */
-.inline-markdown {
-    display: inline;
-}
-
-.inline-markdown p {
-    display: inline;
-    margin: 0;
+.option-item.incorrect {
+    border-color: var(--color-red) !important;
+    background-color: rgba(var(--color-red-rgb), 0.1) !important;
 }
 
 /* Fix for markdown content inside buttons/options */
@@ -103,7 +173,61 @@
     margin: 0;
 }
 
-/* Option List Grids */
+.option-item .markdown-preview-view p {
+    margin-block-start: 0;
+    margin-block-end: 0;
+}
+
+.option-label {
+    font-weight: bold;
+    margin-right: 0.5rem;
+}
+
+.option-content {
+    flex: 1;
+}
+
+/* =========================================================================
+   3. QUESTION TYPES
+   ========================================================================= */
+
+.question-text {
+    font-size: 1.25em;
+    font-weight: bold;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+}
+
+.question-count {
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.question-help-text {
+    font-size: 0.8em;
+    color: var(--text-muted);
+    margin-top: 0.2rem;
+}
+
+/* Error Notice for Invalid Questions */
+.question-error-notice {
+    background-color: var(--background-modifier-error);
+    color: white;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border-error);
+    white-space: pre-wrap;
+    display: block;
+}
+
+.question-error-notice strong {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+/* --- Multiple Choice & Select All That Apply --- */
+
 .question-mc .options-list,
 .question-sata .options-list {
     display: grid;
@@ -120,84 +244,365 @@
     }
 }
 
+/* --- True/False --- */
+
 .question-tf .options-list {
     display: flex;
     gap: 1rem;
 }
 
-/* Option Item Styling */
-.option-item {
-    transition: background-color 0.2s, border-color 0.2s;
-    border: 1px solid var(--background-modifier-border);
-    /* Default border */
-    border-radius: 6px;
-    padding: 1rem;
-    cursor: pointer;
-    background-color: transparent;
+/* --- Matching --- */
+
+.matching-columns {
     display: flex;
-    align-items: center;
-    height: 100%;
-    /* For grid items to stretch */
+    gap: 2rem;
 }
 
-.option-item:hover {
-    background-color: var(--background-modifier-hover);
+.matching-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.matching-item {
+    padding: 0.8rem;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    position: relative;
+    min-height: 44px;
+    cursor: pointer;
+}
+
+.matching-item.selected {
     border-color: var(--interactive-accent);
-    /* Hover border color from reference */
-}
-
-/* Selection States */
-.option-item.selected {
     background-color: var(--interactive-accent-opacity);
+}
+
+.matching-item.paired {
+    background-color: var(--background-secondary);
     border-color: var(--interactive-accent);
 }
 
-/* Correct/Incorrect States (overrides selected) */
-.option-item.correct {
+.matching-item.correct {
     border-color: var(--color-green) !important;
     background-color: rgba(var(--color-green-rgb), 0.1) !important;
 }
 
-.option-item.incorrect {
+.matching-item.incorrect {
     border-color: var(--color-red) !important;
     background-color: rgba(var(--color-red-rgb), 0.1) !important;
 }
 
-/* Reset Markdown Preview Padding/Margins for tighter UI */
-.exam-ui-layout .markdown-preview-view {
-    padding: 0 !important;
-    margin: 0 !important;
-}
-
-/* Reset Markdown Preview Padding/Margins for tighter UI */
-.exam-ui-layout .markdown-preview-view {
-    padding: 0 !important;
-    margin: 0 !important;
-}
-
-/* Ensure question text has breathing room below it */
-.question-text {
-    margin-bottom: 1.5rem;
-}
-
-/* But remove margins from paragraphs inside options to keep buttons compact */
-.option-item .markdown-preview-view p {
-    margin-block-start: 0;
-    margin-block-end: 0;
-}
-/* Error Notice for Invalid Questions */
-.question-error-notice {
-    background-color: var(--background-modifier-error);
+.matching-item .badge {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
     color: white;
-    padding: 1rem;
-    border-radius: 4px;
-    margin-bottom: 1rem;
-    border: 1px solid var(--border-error);
-    white-space: pre-wrap;
-    display: block;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.8em;
 }
 
-.question-error-notice strong {
-    display: block;
+.column.left .badge {
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+.matching-item .badge.left {
+    right: 5px;
+    background: var(--interactive-accent);
+}
+
+/* User's choice badge in right column */
+.matching-item .badge-user {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--interactive-accent);
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.8em;
+    z-index: 2;
+    right: 5px;
+}
+
+.matching-item .badge-user.offset {
+    right: 30px;
+}
+
+.matching-item .badge-user.correct {
+    background: var(--color-green);
+}
+
+.matching-item .badge-user.incorrect {
+    background: var(--color-red);
+}
+
+/* Correct answer badge shown in review */
+.matching-item .badge-correct {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--color-green);
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.8em;
+    z-index: 1;
+}
+
+/* --- Fill-In-The-Blank --- */
+
+.fib-container {
+    font-size: 1.1em;
+    line-height: 2;
+}
+
+.fib-input-wrapper {
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.fib-input {
+    border: none !important;
+    border-bottom: 2px solid var(--interactive-accent) !important;
+    background: transparent !important;
+    color: var(--text-normal) !important;
+    width: 120px;
+    text-align: center;
+    margin: 0 0.2rem;
+    padding: 0 0.2rem;
+    font-size: 1em;
+    height: 1.5em;
+}
+
+.fib-input:disabled {
+    opacity: 1 !important;
+    color: var(--text-normal) !important;
+    cursor: default;
+}
+
+.fib-input.correct {
+    border-bottom-color: var(--color-green) !important;
+}
+
+.fib-input.incorrect {
+    border-bottom-color: var(--color-red) !important;
+}
+
+.fib-answer-popover {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    font-size: 0.8em;
+    color: var(--color-green);
+    white-space: nowrap;
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    padding: 2px 4px;
+    border-radius: 4px;
+    z-index: 10;
+}
+
+/* Inline Markdown for Fill In Blank */
+.inline-markdown {
+    display: inline;
+}
+
+.inline-markdown p {
+    display: inline;
+    margin: 0;
+}
+
+/* --- Text Answer (Short/Long) --- */
+
+.text-answer-input,
+.text-answer-textarea {
+    width: 100%;
+    padding: 0.8rem;
+}
+
+.text-answer-textarea {
+    resize: vertical;
+}
+
+.reference-answer-container {
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--color-green);
+    border-radius: 6px;
+    background-color: rgba(var(--color-green-rgb), 0.1);
+}
+
+.reference-label {
+    font-weight: bold;
+    color: var(--color-green);
+}
+
+/* =========================================================================
+   4. RESULTS VIEW
+   ========================================================================= */
+
+.results-container {
+    padding: 2rem;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.exam-results h1 {
     margin-bottom: 0.5rem;
+}
+
+.results-score-big {
+    font-size: 2.5em;
+    margin: 0;
+}
+
+.results-status-pass {
+    color: var(--color-green);
+}
+
+.results-status-fail {
+    color: var(--color-red);
+}
+
+.result-card {
+    border: 1px solid var(--background-modifier-border);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 6px;
+}
+
+.result-card.correct {
+    border-left: 5px solid var(--color-green);
+}
+
+.result-card.incorrect {
+    border-left: 5px solid var(--color-red);
+}
+
+.results-actions-container {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+/* =========================================================================
+   5. UTILITY CLASSES
+   ========================================================================= */
+
+.u-flex {
+    display: flex;
+}
+
+.u-flex-center {
+    align-items: center;
+}
+
+.u-flex-gap-1 {
+    gap: 1rem;
+}
+
+.u-flex-justify-between {
+    justify-content: space-between;
+}
+
+.u-flex-justify-center {
+    justify-content: center;
+}
+
+.u-flex-column {
+    flex-direction: column;
+}
+
+.u-flex-grow {
+    flex: 1;
+}
+
+.u-bold {
+    font-weight: bold;
+}
+
+.u-text-muted {
+    color: var(--text-muted);
+}
+
+.u-text-center {
+    text-align: center;
+}
+
+.u-mb-0 {
+    margin-bottom: 0 !important;
+}
+
+.u-mb-05 {
+    margin-bottom: 0.5rem !important;
+}
+
+.u-mb-1 {
+    margin-bottom: 1rem !important;
+}
+
+.u-mb-2 {
+    margin-bottom: 2rem !important;
+}
+
+.u-mt-05 {
+    margin-top: 0.5rem !important;
+}
+
+.u-mt-1 {
+    margin-top: 1rem !important;
+}
+
+.u-mt-2 {
+    margin-top: 2rem !important;
+}
+
+.u-mr-05 {
+    margin-right: 0.5rem !important;
+}
+
+.u-w-full {
+    width: 100% !important;
+}
+
+.u-p-08 {
+    padding: 0.8rem !important;
+}
+
+.u-cursor-default {
+    cursor: default !important;
+}
+
+.u-cursor-pointer {
+    cursor: pointer !important;
+}
+
+.u-pre-wrap {
+    white-space: pre-wrap !important;
+}
+
+.u-block {
+    display: block !important;
+}
+
+.u-small {
+    font-size: 0.8em !important;
 }

@@ -23,7 +23,7 @@ export const ShortLongAnswer: React.FC<Props> = ({ question, answer, onChange, r
 
     return (
         <div className="question-text-answer">
-            <div className="question-text" style={{ marginBottom: '1rem' }}>
+            <div className="question-text u-mb-1">
                 <MarkdownContent app={app} content={question.questionText} />
             </div>
 
@@ -34,7 +34,7 @@ export const ShortLongAnswer: React.FC<Props> = ({ question, answer, onChange, r
                     disabled={readOnly || showResult}
                     onChange={(e) => handleChange(e.target.value)}
                     placeholder="Type your answer here..."
-                    style={{ width: '100%', padding: '0.8rem', resize: 'vertical' }}
+                    className="text-answer-textarea"
                 />
             ) : (
                 <input
@@ -43,14 +43,14 @@ export const ShortLongAnswer: React.FC<Props> = ({ question, answer, onChange, r
                     disabled={readOnly || showResult}
                     onChange={(e) => handleChange(e.target.value)}
                     placeholder="Type your answer here..."
-                    style={{ width: '100%', padding: '0.8rem' }}
+                    className="text-answer-input"
                 />
             )}
 
             {showResult && question.correctAnswerText && (
-                <div style={{ marginTop: '1rem', padding: '1rem', border: '1px solid var(--color-green)', borderRadius: '6px', backgroundColor: 'rgba(var(--color-green-rgb), 0.1)' }}>
-                    <div style={{ fontWeight: 'bold', color: 'var(--color-green)' }}>Correct Answer / Reference:</div>
-                    <div style={{ whiteSpace: 'pre-wrap' }}>
+                <div className="reference-answer-container">
+                    <div className="reference-label">Correct Answer / Reference:</div>
+                    <div className="u-pre-wrap">
                         <MarkdownContent app={app} content={question.correctAnswerText} />
                     </div>
                 </div>

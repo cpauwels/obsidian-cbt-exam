@@ -15,7 +15,7 @@ interface Props {
 export const TrueFalse: React.FC<Props> = ({ question, answer, onChange, readOnly, showResult, app }) => {
     return (
         <div className="question-tf">
-            <div className="question-text" style={{ marginBottom: '1rem' }}>
+            <div className="question-text u-mb-1">
                 <MarkdownContent app={app} content={question.questionText} />
             </div>
             <div className="options-list">
@@ -38,13 +38,8 @@ export const TrueFalse: React.FC<Props> = ({ question, answer, onChange, readOnl
                     return (
                         <div
                             key={val.toString()}
-                            className={`option-item ${statusClass}`}
+                            className={`option-item ${statusClass} u-flex-grow u-text-center u-block`}
                             onClick={() => !readOnly && !showResult && onChange({ booleanSelection: val })}
-                            style={{
-                                flex: 1,
-                                textAlign: 'center',
-                                display: 'block' // Since base option-item is flex
-                            }}
                         >
                             {val ? "True" : "False"}
                         </div>

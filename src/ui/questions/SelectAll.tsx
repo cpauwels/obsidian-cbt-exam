@@ -26,9 +26,9 @@ export const SelectAll: React.FC<Props> = ({ question, answer, onChange, readOnl
 
     return (
         <div className="question-sata">
-            <div className="question-text" style={{ marginBottom: '1rem' }}>
+            <div className="question-text u-mb-1">
                 <MarkdownContent app={app} content={question.questionText} />
-                <div style={{ fontSize: '0.8em', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+                <div className="question-help-text">
                     (Select all that apply)
                 </div>
             </div>
@@ -62,12 +62,12 @@ export const SelectAll: React.FC<Props> = ({ question, answer, onChange, readOnl
                                 type="checkbox"
                                 checked={isSelected}
                                 readOnly
-                                style={{ marginRight: '0.5rem' }}
+                                className="u-mr-05"
                             />
-                            <span style={{ fontWeight: 'bold', marginRight: '0.5rem' }}>
+                            <span className="option-label">
                                 {question.optionLabels ? question.optionLabels[idx] : String.fromCharCode(97 + idx) + ')'}
                             </span>
-                            <div style={{ flex: 1 }}>
+                            <div className="option-content">
                                 <MarkdownContent app={app} content={opt} />
                             </div>
                         </div>
