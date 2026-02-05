@@ -19,13 +19,15 @@ export const QuestionNav: React.FC<NavProps> = ({ total, current, answers, quest
                 // Check for review mode / result availability
                 let isIncorrect = false;
                 let isCorrect = false;
+                let isUnanswered = false;
                 if (examResult) {
                     const qr = examResult.questionResults.find(r => r.questionId === qid);
                     if (qr) {
                         if (qr.isCorrect) isCorrect = true;
+                        else if (qr.userAnswer.status === 'UNANSWERED') isUnanswered = true;
                         else isIncorrect = true;
                     } else {
-                        isIncorrect = true;
+                        isUnanswered = true;
                     }
                 }
 
@@ -33,6 +35,7 @@ export const QuestionNav: React.FC<NavProps> = ({ total, current, answers, quest
                 if (idx === current) statusClass = "current";
                 else if (isIncorrect) statusClass = "incorrect";
                 else if (isCorrect) statusClass = "correct";
+                else if (isUnanswered) statusClass = "unanswered";
                 else if (status === 'ANSWERED') statusClass = "answered";
                 else if (status === 'FLAGGED') statusClass = "flagged";
 

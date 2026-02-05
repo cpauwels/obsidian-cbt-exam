@@ -57,25 +57,25 @@ export const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void,
 
 
 
-    const handleReview = () => {
+    const handleReview = (idx?: number) => {
         // Switch to review mode
-        // We can treat REVIEW as a status in session, or just navigate back to Q1 and hide result view
-        // We might need to update the session status to REVIEW if we want specific logic
-        // Update the manager's status so subsequent calls (like setIndex) preserve it
         managerRef.current.setStatus('REVIEW');
-        managerRef.current.setIndex(0); // Reset index
+        const targetIdx = typeof idx === 'number' ? idx : 0;
+        setSession(managerRef.current.setIndex(targetIdx));
+    };
 
-        // We need to re-fetch session after setIndex, or just manually compose
-        // But since we modified internal state of manager, setIndex(0) should return correct status now if we fixed manager?
-        // Actually setIndex just copies this.session. So if we updated this.session.status, setIndex will return it correctly.
-        setSession(managerRef.current.setIndex(0));
-
-        // We keep the result state so we can use it for coloring navigation
+    const handleRetake = () => {
+        // Reset manager and session
+        managerRef.current = new ExamSessionManager(definition);
+        const s = managerRef.current.start();
+        setSession(s);
+        setResult(null);
+        setShowCurrentAnswer(false);
     };
 
     // View Switching
     if (result && session.status !== 'REVIEW') {
-        return <ResultsView result={result} onClose={onClose} onReview={handleReview} />;
+        return <ResultsView result={result} onClose={onClose} onReview={handleReview} onRetake={handleRetake} />;
     }
 
     const currentQ = session.definition.questions[session.currentQuestionIndex];

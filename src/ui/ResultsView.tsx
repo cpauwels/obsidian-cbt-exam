@@ -4,10 +4,11 @@ import { ExamResult } from "../types/types";
 interface Props {
     result: ExamResult;
     onClose: () => void;
-    onReview: () => void;
+    onReview: (index?: number) => void;
+    onRetake: () => void;
 }
 
-export const ResultsView: React.FC<Props> = ({ result, onClose, onReview }) => {
+export const ResultsView: React.FC<Props> = ({ result, onClose, onReview, onRetake }) => {
     return (
         <div className="results-container">
             <div className="results-header u-text-center u-mb-2">
@@ -16,35 +17,72 @@ export const ResultsView: React.FC<Props> = ({ result, onClose, onReview }) => {
                     {result.isPass ? "PASSED" : "FAILED"}
                 </h2>
                 <div className="u-text-muted">
-                    Score: {result.totalScore} / {result.maxScore} points • Time: {Math.floor(result.durationSeconds / 60)}m {Math.floor(result.durationSeconds % 60)}s
+                    Time: {Math.floor(result.durationSeconds / 60)}m {Math.floor(result.durationSeconds % 60)}s
+                </div>
+            </div>
+
+            <div className="results-stats-grid">
+                <div className="stat-card">
+                    <div className="stat-value">{result.questionResults.length}</div>
+                    <div className="stat-label">Total Questions</div>
+                </div>
+                <div className="stat-card">
+                    <div className="stat-value results-status-pass">{result.questionResults.filter(q => q.isCorrect).length}</div>
+                    <div className="stat-label">Correct</div>
+                </div>
+                <div className="stat-card">
+                    <div className="stat-value results-status-fail">{result.questionResults.filter(q => !q.isCorrect && q.userAnswer.status !== 'UNANSWERED').length}</div>
+                    <div className="stat-label">Incorrect</div>
+                </div>
+                <div className="stat-card">
+                    <div className="stat-value u-text-muted">{result.questionResults.filter(q => q.userAnswer.status === 'UNANSWERED').length}</div>
+                    <div className="stat-label">Unanswered</div>
+                </div>
+                <div className="stat-card">
+                    <div className="stat-value">{result.totalScore} / {result.maxScore}</div>
+                    <div className="stat-label">Points</div>
+                </div>
+                <div className="stat-card">
+                    <div className="stat-value">{Math.round(result.percentage)}%</div>
+                    <div className="stat-label">Accuracy</div>
                 </div>
             </div>
 
             <div className="results-questions-list">
                 <h3>Question Breakdown</h3>
-                {result.questionResults.map((qr, idx) => {
-                    return (
-                        <div
-                            key={idx}
-                            className={`result-card ${qr.isCorrect ? 'correct' : 'incorrect'}`}
-                        >
-                            <div className="u-bold u-mb-05">Question {idx + 1}</div>
-                            <div>Status: <span className={qr.isCorrect ? 'results-status-pass' : 'results-status-fail'}>{qr.isCorrect ? "Correct" : "Incorrect"}</span></div>
-                        </div>
-                    );
-                })}
+                <div className="results-questions-grid">
+                    {result.questionResults.map((qr, idx) => {
+                        const status = qr.userAnswer.status === 'UNANSWERED' ? 'unanswered' : (qr.isCorrect ? 'correct' : 'incorrect');
+                        return (
+                            <div
+                                key={idx}
+                                className={`result-indicator ${status} u-cursor-pointer`}
+                                title={`Question ${idx + 1}: ${status.charAt(0).toUpperCase() + status.slice(1)} - Click to review`}
+                                onClick={() => onReview(idx)}
+                            >
+                                {idx + 1}
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
 
             <div className="results-actions-container">
                 <button
-                    onClick={onReview}
-                    className="button-large"
+                    onClick={() => onReview()}
+                    className="button-large btn-info"
                 >
                     Review Answers
                 </button>
                 <button
+                    onClick={onRetake}
+                    className="button-large btn-success"
+                >
+                    Retake Exam
+                </button>
+                <button
                     onClick={onClose}
-                    className="mod-cta button-large"
+                    className="button-large btn-primary"
                 >
                     Close Exam
                 </button>
