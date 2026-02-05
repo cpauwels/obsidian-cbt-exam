@@ -5,17 +5,20 @@ export interface BaseQuestion {
     type: QuestionType;
     questionText: string; // Markdown supported
     explanation?: string; // Optional text shown AFTER exam submission
+    error?: string; // Validation error message
 }
 
 export interface MultipleChoiceQuestion extends BaseQuestion {
     type: 'MC';
     options: string[]; // a, b, c... mapped by index 0, 1, 2...
+    optionLabels?: string[]; // original labels from source (e.g. 'a', 'b', 'c')
     correctOptionIndex: number;
 }
 
 export interface SelectAllQuestion extends BaseQuestion {
     type: 'SATA';
     options: string[];
+    optionLabels?: string[];
     correctOptionIndices: number[];
 }
 

@@ -125,6 +125,12 @@ export const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void,
                     Question {session.currentQuestionIndex + 1} of {definition.questions.length}
                 </div>
 
+                {currentQ.error && (
+                    <div className="question-error-notice">
+                        <strong>Invalid Question:</strong> {currentQ.error}
+                    </div>
+                )}
+
                 {renderQuestion(currentQ, currentAns, handleAnswer, app, shouldShowResult)}
             </div>
 

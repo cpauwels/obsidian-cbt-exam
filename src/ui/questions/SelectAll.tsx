@@ -64,6 +64,9 @@ export const SelectAll: React.FC<Props> = ({ question, answer, onChange, readOnl
                                 readOnly
                                 style={{ marginRight: '0.5rem' }}
                             />
+                            <span style={{ fontWeight: 'bold', marginRight: '0.5rem' }}>
+                                {question.optionLabels ? question.optionLabels[idx] : String.fromCharCode(97 + idx) + ')'}
+                            </span>
                             <div style={{ flex: 1 }}>
                                 <MarkdownContent app={app} content={opt} />
                             </div>

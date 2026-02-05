@@ -45,7 +45,7 @@ export const MultipleChoice: React.FC<Props> = ({ question, answer, onChange, re
                             onClick={() => !readOnly && !showResult && onChange({ selectedOptionIndex: idx })}
                         >
                             <span style={{ fontWeight: 'bold', marginRight: '0.5rem' }}>
-                                {String.fromCharCode(97 + idx)})
+                                {question.optionLabels ? question.optionLabels[idx] : String.fromCharCode(97 + idx) + ')'}
                             </span>
                             <div style={{ flex: 1 }}>
                                 <MarkdownContent app={app} content={opt} />
