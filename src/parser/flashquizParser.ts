@@ -1,7 +1,8 @@
 import { Question, QuestionType, ExamDefinition, MultipleChoiceQuestion, SelectAllQuestion, MatchingQuestion, TrueFalseQuestion, FillInBlankQuestion, TextAnswerQuestion, FrontmatterResult } from "../types/types";
 
 // Regex patterns
-const HEADER_REGEX = /^@(\w+)\s+(?:\d+[).]\s*)?(.*)/;
+const HEADER_REGEX = /^@(\w+)\s+(.*)/;
+const Q_NUMBER_REGEX = /^(\d+)[).]\s*/;
 const OPTION_REGEX = /^(\S+)([).])\s+(.*)/;
 const MATCH_PAIR_REGEX = /^(.+?)\s*\|\s*(.+)$/; // Left | Right
 
@@ -15,6 +16,7 @@ export class FlashQuizParser {
     public static parse(content: string, filePath: string): ExamDefinition {
         const lines = content.split('\n');
         const questions: Question[] = [];
+        const usedNumbers = new Set<number>();
         let currentQ: Partial<Question> & { _rawPairs?: Array<{ left: string; right: string }>, _labels?: string[], _answerKeys?: string[] } | null = null;
 
         // Metadata extraction (simple frontmatter regex)
@@ -37,14 +39,15 @@ export class FlashQuizParser {
                 }
 
                 const typeMarker = headerMatch[1].toLowerCase();
-                const questionText = headerMatch[2];
+                let remainingText = headerMatch[2];
                 const type = this.mapType(typeMarker);
 
                 if (type) {
                     currentQ = {
-                        id: this.generateId(questionText + i), // Simple unique ID
+                        id: this.generateId(remainingText + i), // Simple unique ID
                         type: type,
-                        questionText: questionText,
+                        questionText: "",
+                        errors: [],
                         // Initialize type-specific arrays
                         options: (type === 'MC' || type === 'SATA') ? [] : undefined,
                         pairs: (type === 'MATCH') ? [] : undefined,
@@ -54,6 +57,30 @@ export class FlashQuizParser {
                         _labels: (type === 'MC' || type === 'SATA') ? [] : undefined,
                         _answerKeys: (type === 'MC' || type === 'SATA') ? [] : undefined
                     } as Partial<Question> & { _rawPairs?: Array<{ left: string; right: string }>, _labels?: string[], _answerKeys?: string[] };
+
+                    // 1.1 Detect and validate question number
+                    const numberMatch = remainingText.match(Q_NUMBER_REGEX);
+                    if (numberMatch) {
+                        const numStr = numberMatch[1];
+                        const num = parseInt(numStr);
+                        currentQ.order = num;
+                        remainingText = remainingText.substring(numberMatch[0].length);
+
+                        if (usedNumbers.has(num)) {
+                            currentQ.errors?.push(`Duplicate question number '${num}' found.`);
+                        }
+                        usedNumbers.add(num);
+                    } else {
+                        // Check if there is SOMETHING that looks like a number but failed the strict regex
+                        const looseMatch = remainingText.match(/^(\S+)[).]\s*/);
+                        if (looseMatch) {
+                            currentQ.errors?.push(`Invalid question number format '${looseMatch[1]}'. Only [0-9] digits are allowed.`);
+                            remainingText = remainingText.substring(looseMatch[0].length);
+                        } else {
+                            currentQ.errors?.push("Question is missing a sequence number.");
+                        }
+                    }
+                    currentQ.questionText = remainingText;
                 }
                 continue;
             }
@@ -105,6 +132,13 @@ export class FlashQuizParser {
         if (currentQ) {
             this.finalizeQuestion(questions, currentQ);
         }
+
+        // 4. Sort questions by order if present
+        questions.sort((a, b) => {
+            const orderA = a.order ?? Infinity;
+            const orderB = b.order ?? Infinity;
+            return orderA - orderB;
+        });
 
         return {
             title: metadata.title || 'Untitled Exam',
@@ -245,20 +279,43 @@ export class FlashQuizParser {
             const seenLabels = new Set<string>();
 
             if (labels.length > 26) {
-                q.error = "Question has more than 26 options. Maximum allowed is 26 (a-z).";
+                q.errors?.push("Question has more than 26 options. Maximum allowed is 26 (a-z).");
             }
 
             for (const labelWithSep of labels) {
                 const rawLabel = labelWithSep.replace(/[).]$/, '');
                 if (!/^[a-z]$/.test(rawLabel)) {
-                    if (!q.error) q.error = `Invalid option label '${rawLabel}'. Labels must be lowercase 'a' through 'z'.`;
+                    q.errors?.push(`Invalid option label '${rawLabel}'. Labels must be lowercase 'a' through 'z'.`);
                 }
                 const label = rawLabel.toLowerCase();
                 if (seenLabels.has(label)) {
-                    if (!q.error) q.error = `Duplicate option label '${label}' found. Each option must have a unique label.`;
+                    q.errors?.push(`Duplicate option label '${label}' found. Each option must have a unique label.`);
                 }
                 seenLabels.add(label);
             }
+
+            // --- Option Sequencing (Alphabetical) ---
+            // Combine labels and options to sort them together
+            const optionItems = labels.map((l, idx) => ({
+                label: l,
+                content: (q as MultipleChoiceQuestion).options[idx]
+            }));
+
+            // Sort by the label (lowercase, stripped of separator)
+            optionItems.sort((a, b) => {
+                const labelA = a.label.replace(/[).]$/, '').toLowerCase();
+                const labelB = b.label.replace(/[).]$/, '').toLowerCase();
+                return labelA.localeCompare(labelB);
+            });
+
+            // Re-assign sorted values
+            labels.length = 0;
+            (q as MultipleChoiceQuestion).options.length = 0;
+            optionItems.forEach(item => {
+                labels.push(item.label);
+                (q as MultipleChoiceQuestion).options.push(item.content);
+            });
+            // ----------------------------------------
 
             // Resolve answer keys to indices
             if (q._answerKeys) {
@@ -274,16 +331,16 @@ export class FlashQuizParser {
                     const idx = labelToIndex.get(key);
                     (q as MultipleChoiceQuestion).correctOptionIndex = idx !== undefined ? idx : -1;
                     (q as MultipleChoiceQuestion).optionLabels = labels;
-                    if (idx === undefined && !q.error) {
-                        q.error = `Correct answer label '${key}' does not match any existing options.`;
+                    if (idx === undefined) {
+                        q.errors?.push(`Correct answer label '${key}' does not match any existing options.`);
                     }
                 } else if (q.type === 'SATA') {
                     const indices: number[] = [];
                     q._answerKeys.forEach(k => {
                         const idx = labelToIndex.get(k);
                         if (idx !== undefined) indices.push(idx);
-                        else if (!q.error) {
-                            q.error = `Correct answer label '${k}' does not match any existing options.`;
+                        else {
+                            q.errors?.push(`Correct answer label '${k}' does not match any existing options.`);
                         }
                     });
                     (q as SelectAllQuestion).correctOptionIndices = indices;

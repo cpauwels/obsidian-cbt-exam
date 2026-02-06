@@ -5,7 +5,8 @@ export interface BaseQuestion {
     type: QuestionType;
     questionText: string; // Markdown supported
     explanation?: string; // Optional text shown AFTER exam submission
-    error?: string; // Validation error message
+    errors?: string[]; // Validation error messages
+    order?: number; // Sequence number from source
 }
 
 export interface MultipleChoiceQuestion extends BaseQuestion {

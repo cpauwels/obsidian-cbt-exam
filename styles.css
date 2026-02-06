@@ -312,6 +312,20 @@
     margin-bottom: 0.5rem;
 }
 
+.exam-validation-summary {
+    background-color: var(--background-modifier-error);
+    color: white;
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 2rem;
+    border: 1px solid var(--border-error);
+    font-size: 0.9em;
+}
+
+.exam-validation-summary ul {
+    list-style-type: disc;
+}
+
 /* --- Multiple Choice & Select All That Apply --- */
 
 .question-mc .options-list,

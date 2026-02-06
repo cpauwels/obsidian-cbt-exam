@@ -44,10 +44,14 @@ Questions are defined using specific markers followed by the question text and a
 ### Standard Rules
 
 1.  **Marker**: Start a question with `@type` (e.g., `@mc`).
-2.  **Options**: Use `a)`, `b)`, `c)`... for choices (lowercase letters followed by a parenthesis).
-3.  **Answer**: Use the `=` prefix followed by a space (e.g., `= a`).
-4.  **Multiple Answers**: Separate multiple answers with a comma and space (e.g., `= a, c`).
-5.  **Question Separator**: Questions should be separated by a blank line or the next marker.
+2.  **Question Numbering**: Every question **must** start with a numeric sequence number followed by a parenthesis or period (e.g., `1)` or `2.`).
+    - Only `[0-9]` digits are allowed. Roman numerals or letters are not supported.
+    - Numbers must be unique. Duplicate numbers will trigger a warning.
+    - Questions are automatically sorted by this number in the exam view.
+3.  **Options**: Use `a)`, `b)`, `c)`... for choices (lowercase letters followed by a parenthesis).
+4.  **Answer**: Use the `=` prefix followed by a space (e.g., `= a`).
+5.  **Multiple Answers**: Separate multiple answers with a comma and space (e.g., `= a, c`).
+6.  **Question Separator**: Questions should be separated by a blank line or the next marker.
 
 ---
 

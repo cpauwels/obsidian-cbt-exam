@@ -121,6 +121,8 @@ export const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void,
 
             {/* Main Content */}
             <div className="exam-body">
+                <ValidationSummary questions={definition.questions} />
+
                 <div className="question-count-container u-flex u-flex-center u-flex-justify-between">
                     <div className="question-count">
                         Question {session.currentQuestionIndex + 1} of {definition.questions.length}
@@ -134,9 +136,14 @@ export const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void,
                     </div>
                 </div>
 
-                {currentQ.error && (
+                {currentQ.errors && currentQ.errors.length > 0 && (
                     <div className="question-error-notice">
-                        <strong>Invalid Question:</strong> {currentQ.error}
+                        <strong>Invalid Question:</strong>
+                        <ul className="u-margin-0 u-padding-left-1">
+                            {currentQ.errors.map((err, idx) => (
+                                <li key={idx}>{err}</li>
+                            ))}
+                        </ul>
                     </div>
                 )}
 
@@ -203,6 +210,30 @@ export const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void,
                     />
                 </div>
             </div>
+        </div>
+    );
+};
+
+const ValidationSummary: React.FC<{ questions: Question[] }> = ({ questions }) => {
+    const questionsWithErrors = questions.filter(q => q.errors && q.errors.length > 0);
+
+    if (questionsWithErrors.length === 0) return null;
+
+    return (
+        <div className="exam-validation-summary">
+            <div className="u-bold u-margin-bottom-0-5">Exam Source Warnings:</div>
+            <ul className="u-margin-0 u-padding-left-1">
+                {questionsWithErrors.map((q, idx) => (
+                    <li key={idx}>
+                        <span className="u-bold">Question {q.order ?? idx + 1}:</span>
+                        <ul className="u-margin-0 u-padding-left-1">
+                            {q.errors?.map((err, eIdx) => (
+                                <li key={eIdx}>{err}</li>
+                            ))}
+                        </ul>
+                    </li>
+                ))}
+            </ul>
         </div>
     );
 };
