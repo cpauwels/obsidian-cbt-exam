@@ -6,8 +6,9 @@ An [Obsidian](https://obsidian.md/) plugin for creating interactive, timed exams
 
 ## Features
 
-- **integrated Exam View**: Runs as a native workspace tab with an integrated timer and question navigator.
+- **Integrated Exam View**: Runs as a native workspace tab with an integrated timer and question navigator.
 - **7 Question Types**: Supports Multiple Choice, Select All (SATA), True/False, Fill in the Blank, Matching, and Short/Long answers.
+- **Exam History**: Each quiz tracks your past attempts in a sidecar `{exam-title}-history.md` file, letting you monitor progress over time.
 - **Mark for Review**: Flag questions during the exam with a yellow marker to return to them later.
 - **Enhanced Results Dashboard**: Detailed statistics including accuracy, total score, and time taken.
 - **Retake Exam**: Quickly restart an exam after viewing your results.
@@ -128,7 +129,8 @@ d) Neon
 > See [FLASHQUIZ_SPEC.md](./FLASHQUIZ_SPEC.md) for full syntax documentation and [ExampleQuiz.md](./ExampleQuiz.md) for a comprehensive example file.
 
 ### 2. Start the Exam
-- **Ribbon**: Click the graduation cap icon 🎓 in the left ribbon.
+- **Right-click**: Right-click any Markdown file and select **"Start exam"** from the context menu.
+- **Ribbon**: With the file open, click the graduation cap icon 🎓 in the left ribbon.
 - **Command Palette**: Search for **"Start exam from current file"** (`Ctrl/Cmd + P`).
 
 ### 3. Navigation & Submission
@@ -137,10 +139,11 @@ d) Neon
 - Click **Submit** (or wait for the timer) to view results.
 
 ### 4. Results & Review
-The results dashboard provides a comprehensive breakdown of your performance, including accuracy percentage, points, and time taken. You can:
-- **Review Answers**: Analyze your performance question-by-question (persistent marks and color-coding help you focus on areas for improvement).
-- **Retake Exam**: Immediately restart the exam for another attempt.
-- **Close Exam**: Return to your Obsidian vault.
+The results dashboard provides a breakdown of your performance: accuracy, points, and time.
+- **Review Answers**: Analyze your performance question-by-question.
+- **View History**: Open past attempts for this quiz and review them anytime.
+- **Retake Exam**: Immediately restart the exam.
+- **Close Exam**: Return to your vault.
 
 ---
 
