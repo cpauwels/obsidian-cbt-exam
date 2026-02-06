@@ -44,6 +44,22 @@ export default class CBTExamPlugin extends Plugin {
         });
 
         this.addSettingTab(new CBTSettingsTab(this.app, this));
+
+        // Add to context menu
+        this.registerEvent(
+            this.app.workspace.on('file-menu', (menu, file) => {
+                if (file instanceof TFile && file.extension === 'md') {
+                    menu.addItem((item) => {
+                        item
+                            .setTitle('Start exam')
+                            .setIcon('graduation-cap')
+                            .onClick(async () => {
+                                await this.startExam(file);
+                            });
+                    });
+                }
+            })
+        );
     }
 
     async loadSettings() {
