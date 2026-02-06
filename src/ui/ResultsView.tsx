@@ -6,9 +6,11 @@ interface Props {
     onClose: () => void;
     onReview: (index?: number) => void;
     onRetake: () => void;
+    onShowHistory: () => void;
+    showHistoryButton?: boolean;
 }
 
-export const ResultsView: React.FC<Props> = ({ result, onClose, onReview, onRetake }) => {
+export const ResultsView: React.FC<Props> = ({ result, onClose, onReview, onRetake, onShowHistory, showHistoryButton = true }) => {
     return (
         <div className="results-container">
             <div className="results-header u-text-center u-mb-2">
@@ -85,6 +87,14 @@ export const ResultsView: React.FC<Props> = ({ result, onClose, onReview, onReta
                 >
                     Retake Exam
                 </button>
+                {showHistoryButton && (
+                    <button
+                        onClick={onShowHistory}
+                        className="button-large btn-secondary"
+                    >
+                        View History
+                    </button>
+                )}
                 <button
                     onClick={onClose}
                     className="button-large btn-primary"

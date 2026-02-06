@@ -1,12 +1,17 @@
 import { Plugin, Notice, TFile, WorkspaceLeaf } from "obsidian";
 import { FlashQuizParser } from "./parser/flashquizParser";
 import { ExamView, EXAM_VIEW_TYPE } from "./ui/ExamView";
+import { CBTSettings, CBTSettingsTab, DEFAULT_SETTINGS } from "./settings/settingsTab";
 
 export default class CBTExamPlugin extends Plugin {
-    onload() {
+    settings: CBTSettings;
+
+    async onload() {
+        await this.loadSettings();
+
         this.registerView(
             EXAM_VIEW_TYPE,
-            (leaf: WorkspaceLeaf) => new ExamView(leaf)
+            (leaf: WorkspaceLeaf) => new ExamView(leaf, this)
         );
 
         // Register command to start exam
@@ -37,6 +42,16 @@ export default class CBTExamPlugin extends Plugin {
                 new Notice("Please open a quiz file first.");
             }
         });
+
+        this.addSettingTab(new CBTSettingsTab(this.app, this));
+    }
+
+    async loadSettings() {
+        this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    }
+
+    async saveSettings() {
+        await this.saveData(this.settings);
     }
 
     async startExam(file: TFile) {

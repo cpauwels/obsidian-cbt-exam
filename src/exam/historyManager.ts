@@ -1,0 +1,214 @@
+import { App, TFile, normalizePath } from "obsidian";
+import { ExamResult, AnswerStatus } from "../types/types";
+
+interface CompactExamResult {
+    id: string;
+    ts: number;
+    sc: number;
+    mSc: number;
+    pct: number;
+    p: boolean;
+    dur: number;
+    res: Array<{
+        q: string;
+        ok: boolean;
+        s: number;
+        st: AnswerStatus;
+        idx?: number;
+        idxs?: number[];
+        val?: boolean;
+        txt?: string[];
+        pts?: Array<{ l: number, r: number }>;
+        m?: boolean;
+    }>;
+}
+
+export class HistoryManager {
+    private app: App;
+
+    constructor(app: App) {
+        this.app = app;
+    }
+
+    private getHistoryFilePath(quizPath: string): string {
+        const extensionIndex = quizPath.lastIndexOf(".");
+        const basePath = extensionIndex !== -1 ? quizPath.substring(0, extensionIndex) : quizPath;
+        return `${basePath}-history.md`;
+    }
+
+    public async saveSession(quizPath: string, result: ExamResult): Promise<void> {
+        const historyPath = normalizePath(this.getHistoryFilePath(quizPath));
+        const historyFile = this.app.vault.getAbstractFileByPath(historyPath);
+
+        const timestamp = new Date(result.timestamp).toLocaleString();
+        const scorePercent = result.percentage.toFixed(1);
+        const duration = this.formatDuration(result.durationSeconds);
+        const passStatus = result.isPass ? "✅" : "❌";
+
+        const tableRow = `| ${result.sessionId.substring(0, 8)} | ${timestamp} | ${scorePercent}% | ${duration} | ${passStatus} |`;
+
+        const sessionDetail = `
+## Attempt: ${timestamp}
+> [!info] Summary
+> Score: ${result.totalScore}/${result.maxScore} | Correct: ${scorePercent}% | Time: ${duration}
+
+> [!abstract]- Raw Session Data
+> <!-- SESSION_DATA_START -->
+> \`\`\`json
+${this.compressResult(result).split('\n').map(line => `> ${line}`).join('\n')}
+> \`\`\`
+> <!-- SESSION_DATA_END -->
+
+---
+`;
+
+        if (historyFile instanceof TFile) {
+            let content = await this.app.vault.read(historyFile);
+
+            // 1. Update Frontmatter (simplified logic for now, could use processFrontMatter)
+            content = this.updateFrontmatter(content, result);
+
+            // 2. Append Table Row (find table or add it)
+            content = this.appendToTable(content, tableRow);
+
+            // 3. Append Detailed Block
+            content += sessionDetail;
+
+            await this.app.vault.modify(historyFile, content);
+        } else {
+            // Create new history file
+            const initialContent = `---
+source: "${quizPath}"
+created: ${new Date().toISOString().split('T')[0]}
+attempts: 1
+last-score: ${result.percentage}
+last-attempt-date: ${new Date().toISOString().split('T')[0]}
+---
+
+# Exam History: ${quizPath}
+
+| ID | Date | Score | Duration | Pass |
+| :--- | :--- | :--- | :--- | :--- |
+${tableRow}
+
+${sessionDetail}`;
+            await this.app.vault.create(historyPath, initialContent);
+        }
+    }
+
+    private formatDuration(seconds: number): string {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}m ${secs}s`;
+    }
+
+    private updateFrontmatter(content: string, result: ExamResult): string {
+        // Very basic regex-based frontmatter update for now
+        // A more robust approach would use app.fileManager.processFrontMatter if possible
+        const attemptsMatch = content.match(/attempts: (\d+)/);
+        if (attemptsMatch) {
+            const newAttempts = parseInt(attemptsMatch[1]) + 1;
+            content = content.replace(/attempts: \d+/, `attempts: ${newAttempts}`);
+        }
+
+        content = content.replace(/last-score: [\d.]+/, `last-score: ${result.percentage}`);
+        content = content.replace(/last-attempt-date: \d{4}-\d{2}-\d{2}/, `last-attempt-date: ${new Date().toISOString().split('T')[0]}`);
+
+        return content;
+    }
+
+    private appendToTable(content: string, row: string): string {
+        const tableEndIndex = content.indexOf("| Pass |") + "| Pass |".length;
+        const secondLineIndex = content.indexOf("\n", tableEndIndex);
+        const dividerEndIndex = content.indexOf("\n", secondLineIndex + 1);
+
+        if (dividerEndIndex !== -1) {
+            // Inserting after the divider line of the table
+            return content.slice(0, dividerEndIndex + 1) + row + "\n" + content.slice(dividerEndIndex + 1);
+        }
+        return content + "\n" + row;
+    }
+
+    public async getHistory(quizPath: string): Promise<ExamResult[]> {
+        const historyPath = normalizePath(this.getHistoryFilePath(quizPath));
+        const historyFile = this.app.vault.getAbstractFileByPath(historyPath);
+
+        if (!(historyFile instanceof TFile)) {
+            return [];
+        }
+
+        const content = await this.app.vault.read(historyFile);
+        const results: ExamResult[] = [];
+        // The regex needs to handle the leading "> " for the markers themselves when inside a callout
+        const regex = /(?:>\s*)*<!-- SESSION_DATA_START -->\s*(?:>\s*)*```json\s*([\s\S]*?)\s*(?:>\s*)*```\s*(?:>\s*)*<!-- SESSION_DATA_END -->/g;
+
+        let match;
+        while ((match = regex.exec(content)) !== null) {
+            try {
+                // Remove the callout prefix '>' if it exists on each line of the captured JSON
+                // We handle multiple levels of '>' and optional spaces, but ONLY at the start of the line
+                const jsonString = match[1].split('\n').map(line => line.replace(/^(?:>\s*)+/, '')).join('\n');
+                const rawData = JSON.parse(jsonString);
+
+                // Strictly using compact format
+                results.push(this.decompressResult(rawData));
+            } catch (e) {
+                console.error("Failed to parse history session:", e);
+            }
+        }
+
+        return results.sort((a, b) => b.timestamp - a.timestamp);
+    }
+
+    private compressResult(result: ExamResult): string {
+        const compact = {
+            id: result.sessionId,
+            ts: result.timestamp,
+            sc: result.totalScore,
+            mSc: result.maxScore,
+            pct: parseFloat(result.percentage.toFixed(1)),
+            p: result.isPass,
+            dur: parseFloat(result.durationSeconds.toFixed(1)),
+            res: result.questionResults.map(qr => ({
+                q: qr.questionId,
+                ok: qr.isCorrect,
+                s: qr.score,
+                st: qr.userAnswer.status,
+                idx: qr.userAnswer.selectedOptionIndex,
+                idxs: qr.userAnswer.selectedOptionIndices,
+                val: qr.userAnswer.booleanSelection,
+                txt: qr.userAnswer.textInputs,
+                pts: qr.userAnswer.matchedPairs,
+                m: qr.userAnswer.isMarked
+            }))
+        };
+        return JSON.stringify(compact, null, 2);
+    }
+
+    private decompressResult(compact: CompactExamResult): ExamResult {
+        return {
+            sessionId: compact.id,
+            timestamp: compact.ts,
+            totalScore: compact.sc,
+            maxScore: compact.mSc,
+            percentage: compact.pct,
+            isPass: compact.p,
+            durationSeconds: compact.dur,
+            questionResults: compact.res.map((r) => ({
+                questionId: r.q,
+                isCorrect: r.ok,
+                score: r.s,
+                userAnswer: {
+                    questionId: r.q,
+                    status: r.st,
+                    selectedOptionIndex: r.idx,
+                    selectedOptionIndices: r.idxs,
+                    booleanSelection: r.val,
+                    textInputs: r.txt,
+                    matchedPairs: r.pts,
+                    isMarked: r.m
+                }
+            }))
+        };
+    }
+}

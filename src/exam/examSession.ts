@@ -1,4 +1,4 @@
-import { ExamDefinition, ExamSession, UserAnswerState } from "../types/types";
+import { ExamDefinition, ExamResult, ExamSession, QuestionResult, UserAnswerState } from "../types/types";
 
 export class ExamSessionManager {
     private session: ExamSession;
@@ -95,6 +95,20 @@ export class ExamSessionManager {
 
     public setStatus(status: ExamSession['status']): ExamSession {
         this.session.status = status;
+        return { ...this.session };
+    }
+
+    public loadFromResult(result: ExamResult): ExamSession {
+        this.session.status = 'SUBMITTED';
+        this.session.startTime = result.timestamp - (result.durationSeconds * 1000);
+        this.session.endTime = result.timestamp;
+
+        // Reconstruct answers
+        this.session.answers = {};
+        result.questionResults.forEach((qr: QuestionResult) => {
+            this.session.answers[qr.questionId] = qr.userAnswer;
+        });
+
         return { ...this.session };
     }
 }

@@ -44,7 +44,7 @@ export class FlashQuizParser {
 
                 if (type) {
                     currentQ = {
-                        id: this.generateId(remainingText + i), // Simple unique ID
+                        id: this.generateId(remainingText), // Stable ID based on question text
                         type: type,
                         questionText: "",
                         errors: [],

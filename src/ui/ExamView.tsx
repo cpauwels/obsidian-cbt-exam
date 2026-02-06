@@ -4,15 +4,18 @@ import * as ReactDOM from "react-dom/client";
 import { ExamUI } from "./ExamUI";
 import { FlashQuizParser } from "../parser/flashquizParser";
 import { ExamDefinition } from "../types/types";
+import CBTExamPlugin from "../main";
 
 export const EXAM_VIEW_TYPE = "cbt-exam-view";
 
 export class ExamView extends TextFileView {
     private root: ReactDOM.Root | null = null;
     private definition: ExamDefinition | null = null;
+    private plugin: CBTExamPlugin;
 
-    constructor(leaf: WorkspaceLeaf) {
+    constructor(leaf: WorkspaceLeaf, plugin: CBTExamPlugin) {
         super(leaf);
+        this.plugin = plugin;
     }
 
     getViewType(): string {
@@ -82,6 +85,7 @@ export class ExamView extends TextFileView {
                 <ExamUI
                     definition={this.definition}
                     app={this.app}
+                    settings={this.plugin.settings}
                     sourcePath={this.file?.path || ""}
                     onClose={() => {
                         void (async () => {

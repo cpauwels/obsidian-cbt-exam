@@ -173,8 +173,9 @@
 }
 
 .btn-secondary {
-    background-color: var(--background-secondary-alt) !important;
+    background-color: var(--background-primary) !important;
     color: var(--text-normal) !important;
+    border: 1px solid var(--background-modifier-border) !important;
 }
 
 .btn-success {
@@ -710,7 +711,158 @@
 }
 
 /* =========================================================================
-   5. UTILITY CLASSES
+   5. HISTORY VIEW
+   ========================================================================= */
+
+.history-container {
+    padding: 2rem;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.history-header h2 {
+    margin: 0;
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    background-color: var(--background-primary);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--background-modifier-border);
+}
+
+.history-table th,
+.history-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.history-table th {
+    background-color: var(--background-secondary-alt);
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+}
+
+.history-table tr:last-child td {
+    border-bottom: none;
+}
+
+.history-table tr:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.btn-small {
+    padding: 0.4rem 1rem !important;
+    font-size: 0.85rem !important;
+    min-width: auto !important;
+}
+
+/* =========================================================================
+   6. LANDING PAGE
+   ========================================================================= */
+
+.landing-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 2rem;
+    background-color: var(--background-primary);
+}
+
+.landing-content {
+    max-width: 600px;
+    width: 100%;
+    padding: 3rem;
+    background-color: var(--background-secondary);
+    border-radius: 20px;
+    border: 1px solid var(--background-modifier-border);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.landing-close-button {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    background-color: transparent !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+}
+
+.landing-close-button:hover {
+    color: var(--text-accent);
+}
+
+.landing-title {
+    font-size: 2.2rem;
+    margin-bottom: 2rem;
+    background: linear-gradient(45deg, var(--text-accent), var(--text-normal));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+}
+
+.landing-stats {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.stat-badge {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem 1.5rem;
+    background-color: var(--background-primary);
+    border-radius: 12px;
+    border: 1px solid var(--background-modifier-border);
+    min-width: 120px;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-normal);
+}
+
+.landing-description {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+.landing-actions {
+    max-width: 320px;
+    margin: 0 auto;
+}
+
+/* =========================================================================
+   7. UTILITY CLASSES
    ========================================================================= */
 
 .u-flex {

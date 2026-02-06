@@ -1,8 +1,10 @@
 import * as React from "react";
 import { App } from "obsidian";
 import { ExamDefinition, ExamSession, UserAnswerState, ExamResult, Question } from "../types/types";
+import { CBTSettings } from "../settings/settingsTab";
 import { ExamSessionManager } from "../exam/examSession";
 import { ScoringEngine } from "../exam/scoringEngine";
+import { HistoryManager } from "../exam/historyManager";
 import { TimerDisplay } from "./components/Timer";
 import { QuestionNav } from "./components/QuestionNav";
 import { ResultsView } from "./ResultsView";
@@ -14,28 +16,43 @@ import { TrueFalse } from "./questions/TrueFalse";
 import { Matching } from "./questions/Matching";
 import { FillInBlank } from "./questions/FillInBlank";
 import { ShortLongAnswer } from "./questions/ShortLongAnswer";
+import { HistoryView } from "./HistoryView";
+import { LandingView } from "./LandingView";
 
-export const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void, app: App, sourcePath?: string }> = ({ definition, onClose, app, sourcePath }) => {
+export const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void, app: App, sourcePath?: string, settings: CBTSettings }> = ({ definition, onClose, app, sourcePath, settings }) => {
     // We use a ref to hold the manager, but state to force re-renders
     const managerRef = React.useRef(new ExamSessionManager(definition));
     const [session, setSession] = React.useState<ExamSession>(managerRef.current.getSession());
     const [result, setResult] = React.useState<ExamResult | null>(null);
     const [showCurrentAnswer, setShowCurrentAnswer] = React.useState(false); // New state for showing answer
+    const [showHistory, setShowHistory] = React.useState(false);
+    const historyManager = React.useMemo(() => new HistoryManager(app), [app]);
 
-    const handleSubmit = React.useCallback(() => {
+    const handleSubmit = React.useCallback(async () => {
         // Calculate score
         const finalSession = managerRef.current.submit();
         setSession(finalSession);
         const res = ScoringEngine.calculateScore(finalSession);
         setResult(res);
+
+        // Save session history if enabled
+        if (sourcePath && settings.saveHistory) {
+            try {
+                await historyManager.saveSession(sourcePath, res);
+            } catch (e) {
+                console.error("Failed to save exam history:", e);
+            }
+        }
+    }, [sourcePath, historyManager, settings.saveHistory]);
+
+    const handleStart = React.useCallback(() => {
+        const s = managerRef.current.start();
+        setSession(s);
     }, []);
 
     React.useEffect(() => {
         console.debug("ExamUI Mounted. Definition:", definition);
-        // Start exam on mount
-        const s = managerRef.current.start();
-        console.debug("Session started:", s);
-        setSession(s);
+        // We no longer auto-start on mount to show the landing page
     }, [definition]);
 
     if (!session) {
@@ -67,15 +84,50 @@ export const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void,
     const handleRetake = () => {
         // Reset manager and session
         managerRef.current = new ExamSessionManager(definition);
-        const s = managerRef.current.start();
-        setSession(s);
+        setSession(managerRef.current.getSession());
         setResult(null);
         setShowCurrentAnswer(false);
     };
 
     // View Switching
+    if (showHistory && sourcePath) {
+        return (
+            <HistoryView
+                app={app}
+                sourcePath={sourcePath}
+                onViewResult={(res) => {
+                    managerRef.current.loadFromResult(res);
+                    setSession(managerRef.current.getSession());
+                    setResult(res);
+                    setShowHistory(false);
+                }}
+                onClose={() => setShowHistory(false)}
+            />
+        );
+    }
+
+    if (session.status === 'IDLE') {
+        return (
+            <LandingView
+                definition={definition}
+                onStart={handleStart}
+                onViewHistory={() => setShowHistory(true)}
+                onClose={onClose}
+            />
+        );
+    }
+
     if (result && session.status !== 'REVIEW') {
-        return <ResultsView result={result} onClose={onClose} onReview={handleReview} onRetake={handleRetake} />;
+        return (
+            <ResultsView
+                result={result}
+                onClose={onClose}
+                onReview={handleReview}
+                onRetake={handleRetake}
+                onShowHistory={() => setShowHistory(true)}
+                showHistoryButton={settings.showHistoryAfterExam}
+            />
+        );
     }
 
     const currentQ = session.definition.questions[session.currentQuestionIndex];
