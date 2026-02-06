@@ -26,7 +26,7 @@ export const HistoryView: React.FC<Props> = ({ app, sourcePath, onViewResult, on
                 setLoading(false);
             }
         };
-        loadHistory();
+        void loadHistory();
     }, [sourcePath, historyManager]);
 
     const formatDuration = (seconds: number) => {

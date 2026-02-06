@@ -159,7 +159,7 @@ export const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void,
                             Time Taken: {Math.floor(result.durationSeconds / 60)}:{(Math.floor(result.durationSeconds % 60)).toString().padStart(2, '0')}
                         </span>
                     ) : (
-                        <TimerDisplay seconds={session.timeLimitSeconds} onExpire={handleSubmit} />
+                        <TimerDisplay seconds={session.timeLimitSeconds} onExpire={() => { void handleSubmit(); }} />
                     )}
                     <button
                         aria-label="Quit Exam"
@@ -237,7 +237,7 @@ export const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void,
                     ) : (
                         <button
                             className="mod-cta"
-                            onClick={handleSubmit}
+                            onClick={() => { void handleSubmit(); }}
                         >
                             Submit exam
                         </button>

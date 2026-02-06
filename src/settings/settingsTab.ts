@@ -22,10 +22,13 @@ export class CBTSettingsTab extends PluginSettingTab {
     display(): void {
         const { containerEl } = this;
         containerEl.empty();
-        containerEl.createEl("h2", { text: "CBT Exam Simulator Settings" });
 
         new Setting(containerEl)
-            .setName("Save Exam History")
+            .setName("History")
+            .setHeading();
+
+        new Setting(containerEl)
+            .setName("Save exam history")
             .setDesc("Automatically save exam results to a {quiz}-history.md file.")
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.saveHistory)
@@ -35,8 +38,8 @@ export class CBTSettingsTab extends PluginSettingTab {
                 }));
 
         new Setting(containerEl)
-            .setName("Show History Button after Exam")
-            .setDesc("Show 'View History' button in the results dashboard.")
+            .setName("Show history button after exam")
+            .setDesc("Show 'view history' button in the results dashboard.")
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.showHistoryAfterExam)
                 .onChange(async (value) => {
