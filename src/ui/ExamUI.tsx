@@ -164,7 +164,7 @@ export const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void,
                     <button
                         aria-label="Quit Exam"
                         onClick={onClose}
-                        className="button-quit"
+                        className="btn-danger"
                     >
                         Quit
                     </button>

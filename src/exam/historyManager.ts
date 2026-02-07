@@ -43,7 +43,7 @@ export class HistoryManager {
         const timestamp = new Date(result.timestamp).toLocaleString();
         const scorePercent = result.percentage.toFixed(1);
         const duration = this.formatDuration(result.durationSeconds);
-        const passStatus = result.isPass ? "✅" : "❌";
+        const passStatus = result.isPass ? "PASS" : "FAIL";
 
         const tableRow = `| ${result.sessionId.substring(0, 8)} | ${timestamp} | ${scorePercent}% | ${duration} | ${passStatus} |`;
 
@@ -87,7 +87,7 @@ last-attempt-date: ${new Date().toISOString().split('T')[0]}
 
 # Exam History: ${quizPath}
 
-| ID | Date | Score | Duration | Pass |
+| ID | Date | Score | Duration | Status |
 | :--- | :--- | :--- | :--- | :--- |
 ${tableRow}
 
@@ -118,7 +118,7 @@ ${sessionDetail}`;
     }
 
     private appendToTable(content: string, row: string): string {
-        const tableEndIndex = content.indexOf("| Pass |") + "| Pass |".length;
+        const tableEndIndex = content.indexOf("| Status |") + "| Status |".length;
         const secondLineIndex = content.indexOf("\n", tableEndIndex);
         const dividerEndIndex = content.indexOf("\n", secondLineIndex + 1);
 
@@ -127,6 +127,39 @@ ${sessionDetail}`;
             return content.slice(0, dividerEndIndex + 1) + row + "\n" + content.slice(dividerEndIndex + 1);
         }
         return content + "\n" + row;
+    }
+
+    public async deleteSession(quizPath: string, sessionId: string): Promise<void> {
+        const historyPath = normalizePath(this.getHistoryFilePath(quizPath));
+        const historyFile = this.app.vault.getAbstractFileByPath(historyPath);
+
+        if (!(historyFile instanceof TFile)) return;
+
+        let content = await this.app.vault.read(historyFile);
+        const shortId = sessionId.substring(0, 8);
+
+        // 1. Remove table row
+        // Looking for | shortId | ... |
+        const tableRowRegex = new RegExp(`^\\|\\s*${shortId}\\s*\\|.*\\|\\s*$`, 'm');
+        content = content.replace(tableRowRegex, '');
+
+        // 2. Remove detail block
+        // The block starts with ## Attempt: and ends with --- (or end of file)
+        // and contains the full sessionId inside the JSON block.
+        const detailBlockRegex = new RegExp(`## Attempt:[\\s\\S]*?<!-- SESSION_DATA_START -->[\\s\\S]*?"id":\\s*"${sessionId}"[\\s\\S]*?<!-- SESSION_DATA_END -->[\\s\\S]*?---`, 'g');
+        content = content.replace(detailBlockRegex, '');
+
+        // 3. Decrement attempts in frontmatter
+        const attemptsMatch = content.match(/attempts: (\d+)/);
+        if (attemptsMatch) {
+            const newAttempts = Math.max(0, parseInt(attemptsMatch[1]) - 1);
+            content = content.replace(/attempts: \d+/, `attempts: ${newAttempts}`);
+        }
+
+        // 4. Cleanup excessive newlines and whitespace
+        content = content.replace(/\n{3,}/g, '\n\n').trim() + '\n';
+
+        await this.app.vault.modify(historyFile, content);
     }
 
     public async getHistory(quizPath: string): Promise<ExamResult[]> {

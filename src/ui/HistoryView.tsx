@@ -2,6 +2,7 @@ import * as React from "react";
 import { App } from "obsidian";
 import { ExamResult } from "../types/types";
 import { HistoryManager } from "../exam/historyManager";
+import { ConfirmModal } from "./ConfirmModal";
 
 interface Props {
     app: App;
@@ -28,6 +29,23 @@ export const HistoryView: React.FC<Props> = ({ app, sourcePath, onViewResult, on
         };
         void loadHistory();
     }, [sourcePath, historyManager]);
+
+    const handleDelete = (sessionId: string) => {
+        new ConfirmModal(
+            app,
+            "Are you sure you want to delete this attempt? This action cannot be undone.",
+            () => {
+                void (async () => {
+                    try {
+                        await historyManager.deleteSession(sourcePath, sessionId);
+                        setHistory(prev => prev.filter(res => res.sessionId !== sessionId));
+                    } catch (e) {
+                        console.error("Failed to delete history session:", e);
+                    }
+                })();
+            }
+        ).open();
+    };
 
     const formatDuration = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
@@ -71,12 +89,18 @@ export const HistoryView: React.FC<Props> = ({ app, sourcePath, onViewResult, on
                                     <td className={res.isPass ? "results-status-pass" : "results-status-fail"}>
                                         {res.isPass ? "PASS" : "FAIL"}
                                     </td>
-                                    <td>
+                                    <td className="u-flex u-flex-center u-gap-2">
                                         <button
                                             className="btn-info btn-small"
                                             onClick={() => onViewResult(res)}
                                         >
                                             View
+                                        </button>
+                                        <button
+                                            className="btn-danger btn-small"
+                                            onClick={() => void handleDelete(res.sessionId)}
+                                        >
+                                            Delete
                                         </button>
                                     </td>
                                 </tr>

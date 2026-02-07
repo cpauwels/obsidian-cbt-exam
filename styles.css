@@ -196,9 +196,13 @@
     background-color: #1976d2 !important;
 }
 
-.button-quit {
+.btn-danger {
     background-color: var(--color-red) !important;
     color: white !important;
+}
+
+.btn-danger:hover {
+    filter: brightness(1.1);
 }
 
 .option-item {
@@ -877,11 +881,25 @@
     gap: 1rem;
 }
 
+.u-gap-1 {
+    gap: 0.5rem;
+}
+
+.u-gap-2 {
+    gap: 1rem;
+}
+
 .u-flex-justify-between {
     justify-content: space-between;
 }
 
 .u-flex-justify-center {
+    justify-content: center;
+}
+
+.u-flex-center-all {
+    display: flex;
+    align-items: center;
     justify-content: center;
 }
 
