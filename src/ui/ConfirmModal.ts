@@ -5,13 +5,15 @@ export class ConfirmModal extends Modal {
     private onConfirm: () => void;
     private onCancel?: () => void;
     private titleText: string;
+    private confirmText: string;
 
-    constructor(app: App, message: string, onConfirm: () => void, onCancel?: () => void, titleText: string = "Confirm action") {
+    constructor(app: App, message: string, onConfirm: () => void, onCancel?: () => void, titleText: string = "Confirm action", confirmText: string = "Confirm") {
         super(app);
         this.message = message;
         this.onConfirm = onConfirm;
         this.onCancel = onCancel;
         this.titleText = titleText;
+        this.confirmText = confirmText;
     }
 
     onOpen() {
@@ -40,7 +42,7 @@ export class ConfirmModal extends Modal {
             });
 
         new ButtonComponent(buttonContainer)
-            .setButtonText("Launch exam")
+            .setButtonText(this.confirmText)
             .setWarning()
             .onClick(() => {
                 this.close();

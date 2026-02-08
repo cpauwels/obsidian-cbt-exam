@@ -43,7 +43,10 @@ export const HistoryView: React.FC<Props> = ({ app, sourcePath, onViewResult, on
                         console.error("Failed to delete history session:", e);
                     }
                 })();
-            }
+            },
+            undefined,
+            "Delete attempt",
+            "Delete"
         ).open();
     };
 

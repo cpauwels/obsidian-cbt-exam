@@ -74,7 +74,8 @@ export const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void,
                 () => {
                     // Do nothing, stay on landing page
                 },
-                "Exam range error"
+                "Exam range error",
+                "Launch exam"
             );
             modal.open();
         } else {
