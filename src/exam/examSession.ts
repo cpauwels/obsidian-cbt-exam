@@ -3,14 +3,15 @@ import { ExamDefinition, ExamResult, ExamSession, QuestionResult, UserAnswerStat
 export class ExamSessionManager {
     private session: ExamSession;
 
-    constructor(definition: ExamDefinition) {
+    constructor(definition: ExamDefinition, isAdaptive: boolean = false) {
         this.session = {
             definition: definition,
             status: 'IDLE',
             startTime: 0,
             timeLimitSeconds: (definition.metadata.timeLimitMinutes || 0) * 60,
             currentQuestionIndex: 0,
-            answers: {}
+            answers: {},
+            isAdaptive,
         };
     }
 

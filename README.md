@@ -8,6 +8,7 @@ An [Obsidian](https://obsidian.md/) plugin for creating interactive, timed exams
 
 - **Integrated Exam View**: Runs as a native workspace tab with an integrated timer and question navigator.
 - **7 Question Types**: Supports Multiple Choice, Select All (SATA), True/False, Fill in the Blank, Matching, and Short/Long answers.
+- **Adaptive Study Mode**: Intelligently identifies your weak points and creates a targeted study session.
 - **Exam History**: Each quiz tracks your past attempts in a sidecar `{exam-title}-history.md` file, letting you monitor progress over time.
 - **Mark for Review**: Flag questions during the exam with a yellow marker to return to them later.
 - **Enhanced Results Dashboard**: Detailed statistics including accuracy, total score, and time taken.
@@ -135,12 +136,18 @@ d) Neon
 - **Ribbon**: With the file open, click the graduation cap icon 🎓 in the left ribbon.
 - **Command Palette**: Search for **"Start exam from current file"** (`Ctrl/Cmd + P`).
 
-### 3. Navigation & Submission
+### 3. Adaptive Study Mode
+Focus on your weak points with a targeted study session.
+- **How it works**: The plugin analyzes your history to identify questions you've struggled with.
+- **Launch**: Click the **Adaptive Study** button on the exam landing page (only available after you have some history).
+- **Mix Ratio**: You can configure the ratio of "Improvable" vs. "Mastered" questions in the plugin settings (default is 70% improvable).
+
+### 4. Navigation & Submission
 - Use the **Question Navigator** tab to jump between questions.
 - Use the **Quit** button to exit the exam at any time.
 - Click **Submit** (or wait for the timer) to view results.
 
-### 4. Results & Review
+### 5. Results & Review
 The results dashboard provides a breakdown of your performance: accuracy, points, and time.
 - **Review Answers**: Analyze your performance question-by-question.
 - **View History**: Open past attempts for this quiz and review them anytime.

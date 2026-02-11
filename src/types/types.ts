@@ -96,6 +96,9 @@ export interface ExamSession {
 
     currentQuestionIndex: number;
     answers: Record<string, UserAnswerState>; // Keyed by Question ID
+
+    // Adaptive Study mode
+    isAdaptive?: boolean;
 }
 
 export interface QuestionResult {
@@ -116,6 +119,24 @@ export interface ExamResult {
     durationSeconds: number;
 
     questionResults: QuestionResult[];
+}
+
+// --- Adaptive Study Types ---
+
+export type QuestionCategory = 'MASTERED' | 'IMPROVING' | 'STRUGGLING' | 'FAILED' | 'UNSEEN';
+
+export interface QuestionPerformance {
+    questionId: string;
+    questionOrder: number;       // Original sequence # in the source file
+    totalAttempts: number;
+    correctCount: number;
+    incorrectCount: number;
+    unansweredCount: number;
+    successRate: number;         // correctCount / totalAttempts (0.0–1.0), -1 for never attempted
+    lastAttemptCorrect: boolean;
+    lastAttemptTimestamp: number;
+    streak: number;              // Consecutive correct answers (resets on wrong/unanswered)
+    category: QuestionCategory;
 }
 
 export interface FrontmatterResult {

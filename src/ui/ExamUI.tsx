@@ -1,6 +1,6 @@
 import * as React from "react";
-import { App } from "obsidian";
-import { ExamDefinition, ExamSession, UserAnswerState, ExamResult, Question } from "../types/types";
+import { App, Notice } from "obsidian";
+import { ExamDefinition, ExamSession, UserAnswerState, ExamResult, Question, QuestionPerformance } from "../types/types";
 import { CBTSettings } from "../settings/settingsTab";
 import { ExamSessionManager } from "../exam/examSession";
 import { ScoringEngine } from "../exam/scoringEngine";
@@ -8,6 +8,9 @@ import { HistoryManager } from "../exam/historyManager";
 import { TimerDisplay } from "./components/Timer";
 import { QuestionNav } from "./components/QuestionNav";
 import { ResultsView } from "./ResultsView";
+import { buildPerformanceIndex, selectAdaptiveQuestions } from "../exam/performanceAnalyzer";
+import { PerformanceManager } from "../exam/performanceManager";
+import { Target, CheckCircle2 } from "lucide-react";
 
 // Types
 import { MultipleChoice } from "./questions/MultipleChoice";
@@ -28,6 +31,36 @@ export const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void,
     const [showCurrentAnswer, setShowCurrentAnswer] = React.useState(false); // New state for showing answer
     const [showHistory, setShowHistory] = React.useState(false);
     const historyManager = React.useMemo(() => new HistoryManager(app), [app]);
+    const performanceManager = React.useMemo(() => new PerformanceManager(app), [app]);
+
+    // Adaptive study state
+    const [performanceData, setPerformanceData] = React.useState<Map<string, QuestionPerformance> | null>(null);
+    const [hasHistory, setHasHistory] = React.useState(false);
+    const [previousPerformance, setPreviousPerformance] = React.useState<Map<string, QuestionPerformance> | null>(null);
+
+    // Load performance data
+    const loadPerformanceData = React.useCallback(async () => {
+        if (!sourcePath) return;
+        try {
+            const history = await historyManager.getHistory(sourcePath);
+            if (history.length > 0) {
+                setHasHistory(true);
+                const allQuestions = definition.fullQuestions || definition.questions;
+                const perfMap = buildPerformanceIndex(history, allQuestions);
+                setPerformanceData(perfMap);
+                await performanceManager.writePerformanceData(sourcePath, perfMap);
+            } else {
+                setHasHistory(false);
+                setPerformanceData(null);
+            }
+        } catch (e) {
+            console.error("Failed to load performance data:", e);
+        }
+    }, [sourcePath, historyManager, performanceManager, definition]);
+
+    React.useEffect(() => {
+        void loadPerformanceData();
+    }, [loadPerformanceData]);
 
     const handleSubmit = React.useCallback(async () => {
         // Calculate score
@@ -40,11 +73,20 @@ export const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void,
         if (sourcePath && settings.saveHistory) {
             try {
                 await historyManager.saveSession(sourcePath, res);
+
+                // Rebuild performance index after saving
+                const history = await historyManager.getHistory(sourcePath);
+                const allQuestions = definition.fullQuestions || definition.questions;
+                const newPerfMap = buildPerformanceIndex(history, allQuestions);
+                // Store previous performance for delta display
+                setPreviousPerformance(performanceData);
+                setPerformanceData(newPerfMap);
+                await performanceManager.writePerformanceData(sourcePath, newPerfMap);
             } catch (e) {
                 console.error("Failed to save exam history:", e);
             }
         }
-    }, [sourcePath, historyManager, settings.saveHistory]);
+    }, [sourcePath, historyManager, performanceManager, settings.saveHistory, definition, performanceData]);
 
     const handleStart = React.useCallback(() => {
         const s = managerRef.current.start();
@@ -83,6 +125,54 @@ export const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void,
         }
     }, [definition, app, handleStart]);
 
+    const handleStartAdaptive = React.useCallback(() => {
+        if (!performanceData) return;
+
+        const allQuestions = definition.fullQuestions || definition.questions;
+        const selection = selectAdaptiveQuestions(allQuestions, performanceData, settings.adaptiveMixRatio);
+
+        if (selection.noHistory) {
+            new Notice("Take the exam at least once before using adaptive study.");
+            return;
+        }
+
+        if (selection.allMastered) {
+            const modal = new ConfirmModal(
+                app,
+                "All questions mastered! Great job!\n\nWould you like to take the full exam for reinforcement?",
+                () => {
+                    managerRef.current = new ExamSessionManager(definition);
+                    const s = managerRef.current.start();
+                    setSession(s);
+                },
+                () => { /* stay on landing */ },
+                "All Mastered!",
+                "Full Exam"
+            );
+            modal.open();
+            return;
+        }
+
+        // Build adaptive ExamDefinition
+        const adaptiveDefinition: ExamDefinition = {
+            ...definition,
+            questions: selection.questions,
+            fullQuestions: allQuestions, // Keep reference to full set
+        };
+
+        // Store previous performance for delta display
+        setPreviousPerformance(performanceData);
+
+        managerRef.current = new ExamSessionManager(adaptiveDefinition, true);
+
+        // Reset state for new session
+        setResult(null);
+        setShowCurrentAnswer(false);
+
+        const s = managerRef.current.start();
+        setSession(s);
+    }, [definition, performanceData, settings.adaptiveMixRatio, app]);
+
     React.useEffect(() => {
         console.debug("ExamUI Mounted. Definition:", definition);
         // We no longer auto-start on mount to show the landing page
@@ -115,11 +205,16 @@ export const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void,
     };
 
     const handleRetake = () => {
-        // Reset manager and session
-        managerRef.current = new ExamSessionManager(definition);
-        setSession(managerRef.current.getSession());
-        setResult(null);
-        setShowCurrentAnswer(false);
+        // For adaptive mode, re-run the selection algorithm to get fresh questions
+        if (session.isAdaptive && performanceData) {
+            handleStartAdaptive();
+        } else {
+            // Reset manager and session
+            managerRef.current = new ExamSessionManager(definition);
+            setSession(managerRef.current.getSession());
+            setResult(null);
+            setShowCurrentAnswer(false);
+        }
     };
 
     // View Switching
@@ -134,7 +229,10 @@ export const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void,
                     setResult(res);
                     setShowHistory(false);
                 }}
-                onClose={() => setShowHistory(false)}
+                onClose={() => {
+                    setShowHistory(false);
+                    void loadPerformanceData();
+                }}
             />
         );
     }
@@ -144,8 +242,11 @@ export const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void,
             <LandingView
                 definition={definition}
                 onStart={handleStartWithValidation}
+                onStartAdaptive={handleStartAdaptive}
                 onViewHistory={() => setShowHistory(true)}
                 onClose={onClose}
+                performanceData={performanceData}
+                hasHistory={hasHistory}
             />
         );
     }
@@ -159,6 +260,9 @@ export const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void,
                 onRetake={handleRetake}
                 onShowHistory={() => setShowHistory(true)}
                 showHistoryButton={settings.showHistoryAfterExam}
+                isAdaptive={session.isAdaptive}
+                previousPerformance={previousPerformance}
+                currentPerformance={performanceData}
             />
         );
     }
@@ -180,7 +284,14 @@ export const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void,
         <div className="exam-ui-layout">
             {/* Header */}
             <div className="exam-header">
-                <div className="exam-title">{currentDefinition.title}</div>
+                <div className="u-flex u-flex-center u-flex-gap-1">
+                    <div className="exam-title">{currentDefinition.title}</div>
+                    {session.isAdaptive && (
+                        <span className="adaptive-badge u-flex u-flex-center u-gap-1">
+                            <Target size={16} /> Adaptive
+                        </span>
+                    )}
+                </div>
 
                 <div className="u-flex u-flex-center u-flex-gap-1">
                     {/* Show Answer Toggle - Only if enabled and not in review */}
@@ -219,7 +330,7 @@ export const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void,
                         onClick={() => !isReviewMode && setSession(managerRef.current.toggleMark(currentQ.id))}
                         title={isReviewMode ? (currentAns?.isMarked ? "Marked" : "") : (currentAns?.isMarked ? "Unmark question" : "Mark question")}
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-check-circle-2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" /><path d="m9 12 2 2 4-4" /></svg>
+                        <CheckCircle2 size={20} />
                     </div>
                 </div>
 
@@ -258,7 +369,7 @@ export const ExamUI: React.FC<{ definition: ExamDefinition, onClose: () => void,
                                 // To go back to results, we don't need to recalculate score if result is already there.
                                 // But if we want to ensure freshness or simple flow:
                                 setResult(ScoringEngine.calculateScore(session));
-                                // And we need to exit review mode? 
+                                // And we need to exit review mode?
                                 // Actually, ResultsView is shown if 'result' is there AND status != REVIEW.
                                 // So we need to reset status to something else (e.g. SUBMITTED)?
                                 // Let's just create a new session state that is SUBMITTED or IDLE?

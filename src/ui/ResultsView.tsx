@@ -1,5 +1,16 @@
 import * as React from "react";
-import { ExamResult } from "../types/types";
+import { ExamResult, QuestionPerformance } from "../types/types";
+import { classifyQuestion } from "../exam/performanceAnalyzer";
+import {
+    PartyPopper,
+    Dumbbell,
+    CheckCircle2,
+    TrendingUp,
+    AlertTriangle,
+    XCircle,
+    HelpCircle,
+    ArrowRight
+} from "lucide-react";
 
 interface Props {
     result: ExamResult;
@@ -8,16 +19,111 @@ interface Props {
     onRetake: () => void;
     onShowHistory: () => void;
     showHistoryButton?: boolean;
+    isAdaptive?: boolean;
+    previousPerformance?: Map<string, QuestionPerformance> | null;
+    currentPerformance?: Map<string, QuestionPerformance> | null;
 }
 
-export const ResultsView: React.FC<Props> = ({ result, onClose, onReview, onRetake, onShowHistory, showHistoryButton = true }) => {
+export const ResultsView: React.FC<Props> = ({
+    result, onClose, onReview, onRetake, onShowHistory,
+    showHistoryButton = true, isAdaptive, previousPerformance, currentPerformance
+}) => {
+    // Calculate adaptive encouragement data
+    const adaptiveStats = React.useMemo(() => {
+        if (!isAdaptive || !previousPerformance || !currentPerformance) return null;
+
+        let improved = 0;
+        let totalWeak = 0;
+        const movements: { questionId: string; from: string; to: string }[] = [];
+
+        for (const qr of result.questionResults) {
+            const prev = previousPerformance.get(qr.questionId);
+            const curr = currentPerformance.get(qr.questionId);
+            if (!prev || !curr) continue;
+
+            const prevCategory = prev.category;
+            const currCategory = classifyQuestion(curr);
+
+            if (prevCategory !== 'MASTERED') {
+                totalWeak++;
+                // Check if improved (moved to a better category)
+                const order = ['FAILED', 'UNSEEN', 'STRUGGLING', 'IMPROVING', 'MASTERED'];
+                const prevIdx = order.indexOf(prevCategory);
+                const currIdx = order.indexOf(currCategory);
+                if (currIdx > prevIdx) {
+                    improved++;
+                    movements.push({ questionId: qr.questionId, from: prevCategory, to: currCategory });
+                }
+            }
+        }
+
+        // Aggregate movements by type to avoid spamming
+        const movementCounts = new Map<string, number>();
+        for (const m of movements) {
+            const key = `${m.from}|${m.to}`;
+            movementCounts.set(key, (movementCounts.get(key) || 0) + 1);
+        }
+
+        const aggregatedMovements: { from: string; to: string; count: number }[] = [];
+        movementCounts.forEach((count, key) => {
+            const [from, to] = key.split('|');
+            aggregatedMovements.push({ from, to, count });
+        });
+
+        // Sort by count DESC
+        aggregatedMovements.sort((a, b) => b.count - a.count);
+
+        return { improved, totalWeak, aggregatedMovements };
+    }, [isAdaptive, previousPerformance, currentPerformance, result]);
+
     return (
         <div className="results-container">
+            {/* Adaptive Encouragement */}
+            {isAdaptive && adaptiveStats && (
+                <div className="adaptive-encouragement">
+                    <div className="adaptive-encouragement-emoji">
+                        {adaptiveStats.improved > 0 ? <PartyPopper size={48} /> : <Dumbbell size={48} />}
+                    </div>
+                    <div className="adaptive-encouragement-text">
+                        {adaptiveStats.improved > 0
+                            ? `You improved on ${adaptiveStats.improved}/${adaptiveStats.totalWeak} weak questions!`
+                            : 'Keep practicing — improvement takes time!'
+                        }
+                    </div>
+                    {adaptiveStats.aggregatedMovements.length > 0 && (
+                        <div className="adaptive-encouragement-detail">
+                            {adaptiveStats.aggregatedMovements.map((m, i) => {
+                                const categoryIcon: Record<string, React.ReactNode> = {
+                                    'MASTERED': <CheckCircle2 size={16} className="icon-success" />,
+                                    'IMPROVING': <TrendingUp size={16} className="icon-info" />,
+                                    'STRUGGLING': <AlertTriangle size={16} className="icon-warning" />,
+                                    'FAILED': <XCircle size={16} className="icon-error" />,
+                                    'UNSEEN': <HelpCircle size={16} className="icon-muted" />
+                                };
+                                return (
+                                    <span key={i} className="adaptive-movement-pill">
+                                        {m.count > 1 && <span className="count-badge">{m.count}x</span>}
+                                        {categoryIcon[m.from]}
+                                        <ArrowRight size={14} className="u-text-muted" />
+                                        {categoryIcon[m.to]}
+                                    </span>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+            )}
+
             <div className="results-header u-text-center u-mb-2">
                 <h1 className="results-score-big">{Math.round(result.percentage)}%</h1>
                 <h2 className={`u-mt-05 ${result.isPass ? 'results-status-pass' : 'results-status-fail'}`}>
                     {result.isPass ? "PASSED" : "FAILED"}
                 </h2>
+                {isAdaptive && (
+                    <div className="u-mt-05">
+                        <span className="adaptive-badge">🎯 Adaptive Study</span>
+                    </div>
+                )}
                 <div className="u-text-muted">
                     Time: {Math.floor(result.durationSeconds / 60)}m {Math.floor(result.durationSeconds % 60)}s
                 </div>
@@ -83,9 +189,9 @@ export const ResultsView: React.FC<Props> = ({ result, onClose, onReview, onReta
                 </button>
                 <button
                     onClick={onRetake}
-                    className="button-large btn-success"
+                    className={`button-large ${isAdaptive ? 'btn-adaptive' : 'btn-success'}`}
                 >
-                    Retake Exam
+                    {isAdaptive ? '🎯 Retake Adaptive' : 'Retake Exam'}
                 </button>
                 {showHistoryButton && (
                     <button

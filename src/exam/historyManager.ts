@@ -139,15 +139,33 @@ ${sessionDetail}`;
         const shortId = sessionId.substring(0, 8);
 
         // 1. Remove table row
-        // Looking for | shortId | ... |
-        const tableRowRegex = new RegExp(`^\\|\\s*${shortId}\\s*\\|.*\\|\\s*$`, 'm');
+        // Looking for | shortId | ... | and the following newline(s)
+        const tableRowRegex = new RegExp(`^\\|\\s*${shortId}\\s*\\|.*\\|\\s*$[\r\n]+`, 'm');
         content = content.replace(tableRowRegex, '');
 
-        // 2. Remove detail block
-        // The block starts with ## Attempt: and ends with --- (or end of file)
-        // and contains the full sessionId inside the JSON block.
-        const detailBlockRegex = new RegExp(`## Attempt:[\\s\\S]*?<!-- SESSION_DATA_START -->[\\s\\S]*?"id":\\s*"${sessionId}"[\\s\\S]*?<!-- SESSION_DATA_END -->[\\s\\S]*?---`, 'g');
-        content = content.replace(detailBlockRegex, '');
+        // 2. Remove detail block safely
+        // Find the specific ID occurrence
+        // We look for "id": "sessionId" or "id":"sessionId"
+        const idPattern = `"id":\\s*"${sessionId}"`;
+        const idRegex = new RegExp(idPattern);
+        const match = content.match(idRegex);
+
+        if (match && match.index !== undefined) {
+            // Find start of this block (searching backwards for ## Attempt:)
+            const blockStart = content.lastIndexOf("## Attempt:", match.index);
+
+            // Find end of this block (searching forwards for ---)
+            const blockEnd = content.indexOf("---", match.index);
+
+            if (blockStart !== -1 && blockEnd !== -1) {
+                // Include the --- in the deletion range (length is 3)
+                // We also want to consume the newline after --- if possible
+                const deletionCount = (blockEnd + 3) - blockStart;
+                const before = content.substring(0, blockStart);
+                const after = content.substring(blockEnd + 3);
+                content = before + after;
+            }
+        }
 
         // 3. Decrement attempts in frontmatter
         const attemptsMatch = content.match(/attempts: (\d+)/);
@@ -157,6 +175,7 @@ ${sessionDetail}`;
         }
 
         // 4. Cleanup excessive newlines and whitespace
+        // Ensure strictly one empty line between blocks
         content = content.replace(/\n{3,}/g, '\n\n').trim() + '\n';
 
         await this.app.vault.modify(historyFile, content);
@@ -202,20 +221,23 @@ ${sessionDetail}`;
             pct: parseFloat(result.percentage.toFixed(1)),
             p: result.isPass,
             dur: parseFloat(result.durationSeconds.toFixed(1)),
-            res: result.questionResults.map(qr => ({
-                q: qr.questionId,
-                ok: qr.isCorrect,
-                s: qr.score,
-                st: qr.userAnswer.status,
-                idx: qr.userAnswer.selectedOptionIndex,
-                idxs: qr.userAnswer.selectedOptionIndices,
-                val: qr.userAnswer.booleanSelection,
-                txt: qr.userAnswer.textInputs,
-                pts: qr.userAnswer.matchedPairs,
-                m: qr.userAnswer.isMarked
-            }))
+            res: result.questionResults.map(qr => {
+                const entry: Record<string, unknown> = {
+                    q: qr.questionId,
+                    ok: qr.isCorrect,
+                    s: qr.score,
+                    st: qr.userAnswer.status,
+                };
+                if (qr.userAnswer.selectedOptionIndex !== undefined) entry.idx = qr.userAnswer.selectedOptionIndex;
+                if (qr.userAnswer.selectedOptionIndices !== undefined) entry.idxs = qr.userAnswer.selectedOptionIndices;
+                if (qr.userAnswer.booleanSelection !== undefined) entry.val = qr.userAnswer.booleanSelection;
+                if (qr.userAnswer.textInputs !== undefined) entry.txt = qr.userAnswer.textInputs;
+                if (qr.userAnswer.matchedPairs !== undefined) entry.pts = qr.userAnswer.matchedPairs;
+                if (qr.userAnswer.isMarked) entry.m = true;
+                return entry;
+            })
         };
-        return JSON.stringify(compact, null, 2);
+        return JSON.stringify(compact);
     }
 
     private decompressResult(compact: CompactExamResult): ExamResult {

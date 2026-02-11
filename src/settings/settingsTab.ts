@@ -4,11 +4,13 @@ import CBTExamPlugin from "../main";
 export interface CBTSettings {
     saveHistory: boolean;
     showHistoryAfterExam: boolean;
+    adaptiveMixRatio: number; // 0.0–1.0, proportion of improvable questions in adaptive mode
 }
 
 export const DEFAULT_SETTINGS: CBTSettings = {
     saveHistory: true,
-    showHistoryAfterExam: true
+    showHistoryAfterExam: true,
+    adaptiveMixRatio: 0.7,
 };
 
 export class CBTSettingsTab extends PluginSettingTab {
@@ -45,6 +47,23 @@ export class CBTSettingsTab extends PluginSettingTab {
                 .onChange(async (value) => {
                     this.plugin.settings.showHistoryAfterExam = value;
                     await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
+            .setName("Adaptive study")
+            .setHeading();
+
+        new Setting(containerEl)
+            .setName("Weak question ratio")
+            .setDesc(`Proportion of weak/unseen questions in adaptive mode (currently ${Math.round(this.plugin.settings.adaptiveMixRatio * 100)}%). The rest are mastered questions for reinforcement.`)
+            .addSlider(slider => slider
+                .setLimits(0.5, 0.9, 0.05)
+                .setValue(this.plugin.settings.adaptiveMixRatio)
+                .setDynamicTooltip()
+                .onChange(async (value) => {
+                    this.plugin.settings.adaptiveMixRatio = value;
+                    await this.plugin.saveSettings();
+                    this.display(); // Refresh to update description
                 }));
     }
 }
