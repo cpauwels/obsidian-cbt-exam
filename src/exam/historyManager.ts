@@ -160,7 +160,6 @@ ${sessionDetail}`;
             if (blockStart !== -1 && blockEnd !== -1) {
                 // Include the --- in the deletion range (length is 3)
                 // We also want to consume the newline after --- if possible
-                const deletionCount = (blockEnd + 3) - blockStart;
                 const before = content.substring(0, blockStart);
                 const after = content.substring(blockEnd + 3);
                 content = before + after;

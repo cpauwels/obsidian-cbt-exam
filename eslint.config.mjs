@@ -28,7 +28,7 @@ export default tseslint.config(
             ...reactHooks.configs.recommended.rules,
 
             // Disable some rules as needed
-            "@typescript-eslint/no-unused-vars": "off",
+            "@typescript-eslint/no-unused-vars": "warn",
             "@typescript-eslint/ban-ts-comment": "off",
             "no-prototype-builtins": "off",
             "@typescript-eslint/no-empty-function": "off",
