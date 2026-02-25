@@ -150,6 +150,11 @@ export class FlashQuizParser {
             rangeErrors.push(...result.errors);
         }
 
+        // 6. Apply question count limit (after range); e.g. exam-range: "-", exam-count: 20 → 20 questions
+        if (metadata.examCount != null && metadata.examCount > 0 && finalQuestions.length > metadata.examCount) {
+            finalQuestions = finalQuestions.slice(0, metadata.examCount);
+        }
+
         return {
             title: metadata.title || 'Untitled Exam',
             sourceFile: filePath,
@@ -161,6 +166,7 @@ export class FlashQuizParser {
                 shuffleQuestions: metadata.shuffle,
                 showAnswer: metadata.showAnswer,
                 questionRange: metadata.examRange,
+                questionCount: metadata.examCount,
                 rangeErrors: rangeErrors.length > 0 ? rangeErrors : undefined
             }
         };
@@ -318,6 +324,9 @@ export class FlashQuizParser {
 
         const rangeMatch = yaml.match(/exam-range:\s*(.*)/);
         if (rangeMatch) result.examRange = rangeMatch[1].replace(/['"]/g, '').trim();
+
+        const countMatch = yaml.match(/exam-count:\s*(\d+)/);
+        if (countMatch) result.examCount = parseInt(countMatch[1], 10);
 
         return result;
     }
